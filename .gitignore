@@ -1,0 +1,18 @@
+_UpgradeReport_Files/
+*.vcxproj.*
+*.old
+*.xml
+*.sdf
+*.suo
+*.dsp
+*.dsw
+*.vcproj
+unix/
+Debug/
+Release/
+ipch/
+sidplay2/
+backup/
+Generated Files/
+*.png/
+*.dds/
