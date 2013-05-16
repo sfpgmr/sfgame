@@ -88,13 +88,13 @@ protected private:
     bool                                                m_gameResourcesLoaded;
     bool                                                m_levelResourcesLoaded;
     GameHud^                                            m_gameHud;
-    GameMain^                                       m_game;
+    GameMain^											m_game;
 
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_sphereTexture;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_cylinderTexture;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_ceilingTexture[GameConstants::MaxBackgroundTextures];
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_floorTexture[GameConstants::MaxBackgroundTextures];
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_wallsTexture[GameConstants::MaxBackgroundTextures];
+    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_sphereTexture;
+    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_cylinderTexture;
+    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_ceilingTexture[GameConstants::MaxBackgroundTextures];
+    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_floorTexture[GameConstants::MaxBackgroundTextures];
+    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_wallsTexture[GameConstants::MaxBackgroundTextures];
 
     // Constant Buffers
     Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferNeverChanges;

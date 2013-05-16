@@ -9,15 +9,7 @@
 #include "DirectXSample.h"
 #include "GameRenderer.h"
 #include "ConstantBuffers.h"
-#include "TargetTexture.h"
 #include "BasicLoader.h"
-#include "CylinderMesh.h"
-#include "FaceMesh.h"
-#include "SphereMesh.h"
-#include "WorldMesh.h"
-#include "Face.h"
-#include "Sphere.h"
-#include "Cylinder.h"
 #include "windows.ui.xaml.media.dxinterop.h"
 
 using namespace concurrency;
@@ -44,9 +36,9 @@ void GameRenderer::Initialize(
     )
 {
     m_gameHud = ref new GameHud(
-        "Windows 8 Samples",
-        "DirectX/XAML first-person game sample",
-        "License state unknown"
+        L"Windows 8 Samples",
+        L"DirectX/XAML first-person game sample",
+        L"License state unknown"
         );
 
     DirectXBase::Initialize(window, swapChainPanel, dpi);
@@ -186,27 +178,27 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
     tasks.push_back(loader->LoadShaderAsync("PixelShaderFlat.cso", &m_pixelShaderFlat));
 
     // Make sure the previous versions if any of the textures are released.
-    m_sphereTexture = nullptr;
-    m_cylinderTexture = nullptr;
-    for (uint32 i = 0; i < GameConstants::MaxBackgroundTextures; i++)
-    {
-        m_ceilingTexture[i] = nullptr;
-        m_floorTexture[i] = nullptr;
-        m_wallsTexture[i] = nullptr;
-    }
+    //m_sphereTexture = nullptr;
+    //m_cylinderTexture = nullptr;
+    //for (uint32 i = 0; i < GameConstants::MaxBackgroundTextures; i++)
+    //{
+    //    m_ceilingTexture[i] = nullptr;
+    //    m_floorTexture[i] = nullptr;
+    //    m_wallsTexture[i] = nullptr;
+    //}
 
     // Load Game specific textures.
-    tasks.push_back(loader->LoadTextureAsync("seafloor.dds", nullptr, &m_sphereTexture));
-    tasks.push_back(loader->LoadTextureAsync("metal_texture.dds", nullptr, &m_cylinderTexture));
-    tasks.push_back(loader->LoadTextureAsync("cellceiling.dds", nullptr, &m_ceilingTexture[0]));
-    tasks.push_back(loader->LoadTextureAsync("cellfloor.dds", nullptr, &m_floorTexture[0]));
-    tasks.push_back(loader->LoadTextureAsync("cellwall.dds", nullptr, &m_wallsTexture[0]));
-    tasks.push_back(loader->LoadTextureAsync("nightceiling.dds", nullptr, &m_ceilingTexture[1]));
-    tasks.push_back(loader->LoadTextureAsync("nightfloor.dds", nullptr, &m_floorTexture[1]));
-    tasks.push_back(loader->LoadTextureAsync("nightwall.dds", nullptr, &m_wallsTexture[1]));
-    tasks.push_back(loader->LoadTextureAsync("dayceiling.dds", nullptr, &m_ceilingTexture[2]));
-    tasks.push_back(loader->LoadTextureAsync("dayfloor.dds", nullptr, &m_floorTexture[2]));
-    tasks.push_back(loader->LoadTextureAsync("daywall.dds", nullptr, &m_wallsTexture[2]));
+    //tasks.push_back(loader->LoadTextureAsync("seafloor.dds", nullptr, &m_sphereTexture));
+    //tasks.push_back(loader->LoadTextureAsync("metal_texture.dds", nullptr, &m_cylinderTexture));
+    //tasks.push_back(loader->LoadTextureAsync("cellceiling.dds", nullptr, &m_ceilingTexture[0]));
+    //tasks.push_back(loader->LoadTextureAsync("cellfloor.dds", nullptr, &m_floorTexture[0]));
+    //tasks.push_back(loader->LoadTextureAsync("cellwall.dds", nullptr, &m_wallsTexture[0]));
+    //tasks.push_back(loader->LoadTextureAsync("nightceiling.dds", nullptr, &m_ceilingTexture[1]));
+    //tasks.push_back(loader->LoadTextureAsync("nightfloor.dds", nullptr, &m_floorTexture[1]));
+    //tasks.push_back(loader->LoadTextureAsync("nightwall.dds", nullptr, &m_wallsTexture[1]));
+    //tasks.push_back(loader->LoadTextureAsync("dayceiling.dds", nullptr, &m_ceilingTexture[2]));
+    //tasks.push_back(loader->LoadTextureAsync("dayfloor.dds", nullptr, &m_floorTexture[2]));
+    //tasks.push_back(loader->LoadTextureAsync("daywall.dds", nullptr, &m_wallsTexture[2]));
     tasks.push_back(create_task([]()
     {
         // Simulate loading additional resources by introducing a delay.
@@ -243,7 +235,7 @@ void GameRenderer::FinalizeCreateGameDeviceResources()
     // Each texture image includes the number of the texture.
     // Make sure the 2D rendering is occurring on the same thread
     // as the main rendering.
-
+/*
     TargetTexture^ textureGenerator = ref new TargetTexture(
         m_d3dDevice.Get(),
         m_d2dFactory.Get(),
@@ -407,7 +399,7 @@ void GameRenderer::FinalizeCreateGameDeviceResources()
         0,
         0
         );
-
+		*/
     m_gameResourcesLoaded = true;
 }
 
@@ -441,32 +433,32 @@ void GameRenderer::FinalizeLoadLevelResources()
 
 void GameRenderer::SetBackground(uint32 background)
 {
-    if (background < GameConstants::MaxBackgroundTextures)
-    {
-        if (m_ceilingTexture[background] != nullptr &&
-            m_floorTexture[background] != nullptr &&
-            m_wallsTexture[background] != nullptr)
-        {
-            auto objects = m_game->RenderObjects();
+    //if (background < GameConstants::MaxBackgroundTextures)
+    //{
+    //    if (m_ceilingTexture[background] != nullptr &&
+    //        m_floorTexture[background] != nullptr &&
+    //        m_wallsTexture[background] != nullptr)
+    //    {
+    //        auto objects = m_game->RenderObjects();
 
-            // Attach the textures to the appropriate game objects.
-            for (auto object = objects.begin(); object != objects.end(); object++)
-            {
-                if ((*object)->TargetId() == GameConstants::WorldFloorId)
-                {
-                    (*object)->NormalMaterial()->SetTexture(m_floorTexture[background].Get());
-                }
-                else if ((*object)->TargetId() == GameConstants::WorldCeilingId)
-                {
-                    (*object)->NormalMaterial()->SetTexture(m_ceilingTexture[background].Get());
-                }
-                else if ((*object)->TargetId() == GameConstants::WorldWallsId)
-                {
-                    (*object)->NormalMaterial()->SetTexture(m_wallsTexture[background].Get());
-                }
-            }
-        }
-    }
+    //        // Attach the textures to the appropriate game objects.
+    //        for (auto object = objects.begin(); object != objects.end(); object++)
+    //        {
+    //            if ((*object)->TargetId() == GameConstants::WorldFloorId)
+    //            {
+    //                (*object)->NormalMaterial()->SetTexture(m_floorTexture[background].Get());
+    //            }
+    //            else if ((*object)->TargetId() == GameConstants::WorldCeilingId)
+    //            {
+    //                (*object)->NormalMaterial()->SetTexture(m_ceilingTexture[background].Get());
+    //            }
+    //            else if ((*object)->TargetId() == GameConstants::WorldWallsId)
+    //            {
+    //                (*object)->NormalMaterial()->SetTexture(m_wallsTexture[background].Get());
+    //            }
+    //        }
+    //    }
+    //}
 }
 
 //----------------------------------------------------------------------
@@ -497,71 +489,71 @@ void GameRenderer::Render()
             m_d2dContext->SetTarget(m_d2dTargetBitmap.Get());
         }
 
-        if (m_game != nullptr && m_gameResourcesLoaded && m_levelResourcesLoaded)
-        {
-            // This section is only used after the game state has been initialized and all device
-            // resources needed for the game have been created and associated with the game objects.
-            if (m_stereoEnabled)
-            {
-                // When doing stereo, it is necessary to update the projection matrix once per rendering pass.
-                ConstantBufferChangeOnResize changesOnResize;
-                XMStoreFloat4x4(
-                    &changesOnResize.projection,
-                    XMMatrixMultiply(
-                        XMMatrixTranspose(
-                            i == 0 ?
-                            m_game->GameCamera()->LeftEyeProjection() :
-                            m_game->GameCamera()->RightEyeProjection()
-                            ),
-                        XMMatrixTranspose(XMLoadFloat4x4(&m_rotationTransform3D))
-                        )
-                    );
+        //if (m_game != nullptr && m_gameResourcesLoaded && m_levelResourcesLoaded)
+        //{
+        //    // This section is only used after the game state has been initialized and all device
+        //    // resources needed for the game have been created and associated with the game objects.
+        //    if (m_stereoEnabled)
+        //    {
+        //        // When doing stereo, it is necessary to update the projection matrix once per rendering pass.
+        //        ConstantBufferChangeOnResize changesOnResize;
+        //        XMStoreFloat4x4(
+        //            &changesOnResize.projection,
+        //            XMMatrixMultiply(
+        //                XMMatrixTranspose(
+        //                    i == 0 ?
+        //                    m_game->GameCamera()->LeftEyeProjection() :
+        //                    m_game->GameCamera()->RightEyeProjection()
+        //                    ),
+        //                XMMatrixTranspose(XMLoadFloat4x4(&m_rotationTransform3D))
+        //                )
+        //            );
 
-                m_d3dContext->UpdateSubresource(
-                    m_constantBufferChangeOnResize.Get(),
-                    0,
-                    nullptr,
-                    &changesOnResize,
-                    0,
-                    0
-                    );
-            }
-            // Update variables that change once per frame.
+        //        m_d3dContext->UpdateSubresource(
+        //            m_constantBufferChangeOnResize.Get(),
+        //            0,
+        //            nullptr,
+        //            &changesOnResize,
+        //            0,
+        //            0
+        //            );
+        //    }
+        //    // Update variables that change once per frame.
 
-            ConstantBufferChangesEveryFrame constantBufferChangesEveryFrame;
-            XMStoreFloat4x4(
-                &constantBufferChangesEveryFrame.view,
-                XMMatrixTranspose(m_game->GameCamera()->View())
-                );
-            m_d3dContext->UpdateSubresource(
-                m_constantBufferChangesEveryFrame.Get(),
-                0,
-                nullptr,
-                &constantBufferChangesEveryFrame,
-                0,
-                0
-                );
+        //    ConstantBufferChangesEveryFrame constantBufferChangesEveryFrame;
+        //    XMStoreFloat4x4(
+        //        &constantBufferChangesEveryFrame.view,
+        //        XMMatrixTranspose(m_game->GameCamera()->View())
+        //        );
+        //    m_d3dContext->UpdateSubresource(
+        //        m_constantBufferChangesEveryFrame.Get(),
+        //        0,
+        //        nullptr,
+        //        &constantBufferChangesEveryFrame,
+        //        0,
+        //        0
+        //        );
 
-            // Setup the graphics pipeline. This sample uses the same InputLayout and set of
-            // constant buffers for all shaders, so they only need to be set once per frame.
+        //    // Setup the graphics pipeline. This sample uses the same InputLayout and set of
+        //    // constant buffers for all shaders, so they only need to be set once per frame.
 
-            m_d3dContext->IASetInputLayout(m_vertexLayout.Get());
-            m_d3dContext->VSSetConstantBuffers(0, 1, m_constantBufferNeverChanges.GetAddressOf());
-            m_d3dContext->VSSetConstantBuffers(1, 1, m_constantBufferChangeOnResize.GetAddressOf());
-            m_d3dContext->VSSetConstantBuffers(2, 1, m_constantBufferChangesEveryFrame.GetAddressOf());
-            m_d3dContext->VSSetConstantBuffers(3, 1, m_constantBufferChangesEveryPrim.GetAddressOf());
+        //    m_d3dContext->IASetInputLayout(m_vertexLayout.Get());
+        //    m_d3dContext->VSSetConstantBuffers(0, 1, m_constantBufferNeverChanges.GetAddressOf());
+        //    m_d3dContext->VSSetConstantBuffers(1, 1, m_constantBufferChangeOnResize.GetAddressOf());
+        //    m_d3dContext->VSSetConstantBuffers(2, 1, m_constantBufferChangesEveryFrame.GetAddressOf());
+        //    m_d3dContext->VSSetConstantBuffers(3, 1, m_constantBufferChangesEveryPrim.GetAddressOf());
 
-            m_d3dContext->PSSetConstantBuffers(2, 1, m_constantBufferChangesEveryFrame.GetAddressOf());
-            m_d3dContext->PSSetConstantBuffers(3, 1, m_constantBufferChangesEveryPrim.GetAddressOf());
-            m_d3dContext->PSSetSamplers(0, 1, m_samplerLinear.GetAddressOf());
+        //    m_d3dContext->PSSetConstantBuffers(2, 1, m_constantBufferChangesEveryFrame.GetAddressOf());
+        //    m_d3dContext->PSSetConstantBuffers(3, 1, m_constantBufferChangesEveryPrim.GetAddressOf());
+        //    m_d3dContext->PSSetSamplers(0, 1, m_samplerLinear.GetAddressOf());
 
-            auto objects = m_game->RenderObjects();
-            for (auto object = objects.begin(); object != objects.end(); object++)
-            {
-                (*object)->Render(m_d3dContext.Get(), m_constantBufferChangesEveryPrim.Get());
-            }
-        }
-        else
+        //    auto objects = m_game->RenderObjects();
+        //    for (auto object = objects.begin(); object != objects.end(); object++)
+        //    {
+        //        (*object)->Render(m_d3dContext.Get(), m_constantBufferChangesEveryPrim.Get());
+        //    }
+        //}
+        //else
         {
             const float ClearColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 

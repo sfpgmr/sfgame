@@ -178,73 +178,47 @@
     <ClInclude Include="BasicMath.h" />
     <ClInclude Include="BasicReaderWriter.h" />
     <ClInclude Include="BasicShapes.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DirectXSample.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="MeshObject.h" />
     <ClInclude Include="PersistentState.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BasicLoader.cpp" />
     <ClCompile Include="BasicReaderWriter.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MeshObject.cpp" />
     <ClCompile Include="PersistentState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animate.h" />
     <ClInclude Include="Audio.h" />
-    <ClInclude Include="Camera.h" />
     <ClInclude Include="ConstantBuffers.h" />
-    <ClInclude Include="Cylinder.h" />
-    <ClInclude Include="CylinderMesh.h" />
-    <ClInclude Include="Face.h" />
-    <ClInclude Include="FaceMesh.h" />
     <ClInclude Include="GameConstants.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="Level1.h" />
-    <ClInclude Include="Level2.h" />
-    <ClInclude Include="Level3.h" />
-    <ClInclude Include="Level4.h" />
-    <ClInclude Include="Level5.h" />
-    <ClInclude Include="Level6.h" />
-    <ClInclude Include="Material.h" />
     <ClInclude Include="MediaReader.h" />
-    <ClInclude Include="MeshObject.h" />
     <ClInclude Include="MoveLookController.h" />
     <ClInclude Include="SoundEffect.h" />
-    <ClInclude Include="Sphere.h" />
-    <ClInclude Include="SphereMesh.h" />
     <ClInclude Include="StereoProjection.h" />
-    <ClInclude Include="TargetTexture.h" />
-    <ClInclude Include="WorldMesh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animate.cpp" />
     <ClCompile Include="Audio.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Cylinder.cpp" />
-    <ClCompile Include="CylinderMesh.cpp" />
-    <ClCompile Include="Face.cpp" />
-    <ClCompile Include="FaceMesh.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameTimer.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Level1.cpp" />
-    <ClCompile Include="Level2.cpp" />
-    <ClCompile Include="Level3.cpp" />
-    <ClCompile Include="Level4.cpp" />
-    <ClCompile Include="Level5.cpp" />
-    <ClCompile Include="Level6.cpp" />
-    <ClCompile Include="Material.cpp" />
     <ClCompile Include="MediaReader.cpp" />
-    <ClCompile Include="MeshObject.cpp" />
     <ClCompile Include="MoveLookController.cpp" />
     <ClCompile Include="SoundEffect.cpp" />
-    <ClCompile Include="Sphere.cpp" />
-    <ClCompile Include="SphereMesh.cpp" />
     <ClCompile Include="StereoProjection.cpp" />
-    <ClCompile Include="TargetTexture.cpp" />
-    <ClCompile Include="WorldMesh.cpp" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

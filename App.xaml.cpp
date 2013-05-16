@@ -776,7 +776,7 @@ void App::SetGameInfoOverlay(GameInfoOverlayState state)
             m_game->LevelCompleted() + 1,
             m_game->CurrentLevel()->Objective(),
             m_game->CurrentLevel()->TimeLimit(),
-            m_game->BonusTime()
+            0
             );
         break;
 
@@ -784,8 +784,8 @@ void App::SetGameInfoOverlay(GameInfoOverlayState state)
         m_mainPage->SetGameOver(
             true,
             m_game->LevelCompleted() + 1,
-            m_game->TotalHits(),
-            m_game->TotalShots(),
+            0,
+            0,
             m_game->HighScore().totalHits
             );
         break;
@@ -794,8 +794,8 @@ void App::SetGameInfoOverlay(GameInfoOverlayState state)
         m_mainPage->SetGameOver(
             false,
             m_game->LevelCompleted(),
-            m_game->TotalHits(),
-            m_game->TotalShots(),
+            0,
+            0,
             m_game->HighScore().totalHits
             );
         break;
@@ -803,9 +803,9 @@ void App::SetGameInfoOverlay(GameInfoOverlayState state)
     case GameInfoOverlayState::Pause:
         m_mainPage->SetPause(
             m_game->LevelCompleted() + 1,
-            m_game->TotalHits(),
-            m_game->TotalShots(),
-            m_game->TimeRemaining()
+			0,
+			0,
+			0
             );
         break;
     }

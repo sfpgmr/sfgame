@@ -14,9 +14,9 @@ using namespace DirectX;
 
 //--------------------------------------------------------------------------------
 
-GameObject::GameObject() :
-    m_normalMaterial(nullptr),
-    m_hitMaterial(nullptr)
+GameObject::GameObject() //:
+    //m_normalMaterial(nullptr),
+    //m_hitMaterial(nullptr)
 {
     m_active          = false;
     m_target          = false;
@@ -43,7 +43,7 @@ void GameObject::Render(
     _In_ ID3D11Buffer *primitiveConstantBuffer
     )
 {
-    if (!m_active || (m_mesh == nullptr) || (m_normalMaterial == nullptr))
+ /*   if (!m_active || (m_mesh == nullptr) || (m_normalMaterial == nullptr))
     {
         return;
     }
@@ -66,6 +66,7 @@ void GameObject::Render(
     context->UpdateSubresource(primitiveConstantBuffer, 0, nullptr, &constantBuffer, 0, 0);
 
     m_mesh->Render(context);
+	*/
 }
 
 //----------------------------------------------------------------------

@@ -17,10 +17,10 @@
 // The Render method will be called during rendering to include the object in the generation of
 // the scene.
 
-#include "MeshObject.h"
+//#include "MeshObject.h"
 #include "SoundEffect.h"
 #include "Animate.h"
-#include "Material.h"
+//#include "Material.h"
 
 ref class GameObject
 {
@@ -66,12 +66,12 @@ internal:
 
     void PlaySound(float impactSpeed, DirectX::XMFLOAT3 eyePoint);
 
-    void Mesh(_In_ MeshObject^ mesh);
+    //void Mesh(_In_ MeshObject^ mesh);
 
-    void NormalMaterial(_In_ Material^ material);
-    Material^ NormalMaterial();
-    void HitMaterial(_In_ Material^ material);
-    Material^ HitMaterial();
+    //void NormalMaterial(_In_ Material^ material);
+    //Material^ NormalMaterial();
+    //void HitMaterial(_In_ Material^ material);
+    //Material^ HitMaterial();
 
     void Position(DirectX::XMFLOAT3 position);
     void Position(DirectX::XMVECTOR position);
@@ -96,8 +96,8 @@ protected private:
     DirectX::XMFLOAT3   m_velocity;
     DirectX::XMFLOAT4X4 m_modelMatrix;
 
-    Material^           m_normalMaterial;
-    Material^           m_hitMaterial;
+    //Material^           m_normalMaterial;
+    //Material^           m_hitMaterial;
 
     DirectX::XMFLOAT3   m_defaultXAxis;
     DirectX::XMFLOAT3   m_defaultYAxis;
@@ -106,7 +106,7 @@ protected private:
     float               m_hitTime;
 
     Animate^            m_animatePosition;
-    MeshObject^         m_mesh;
+    //MeshObject^         m_mesh;
 
     SoundEffect^        m_hitSound;
 };
@@ -228,30 +228,30 @@ __forceinline Animate^ GameObject::AnimatePosition()
     return m_animatePosition;
 }
 
-__forceinline void GameObject::NormalMaterial(_In_ Material^ material)
-{
-    m_normalMaterial = material;
-}
+//__forceinline void GameObject::NormalMaterial(_In_ Material^ material)
+//{
+//    m_normalMaterial = material;
+//}
 
-__forceinline Material^ GameObject::NormalMaterial()
-{
-    return m_normalMaterial;
-}
-
-__forceinline void GameObject::HitMaterial(_In_ Material^ material)
-{
-    m_hitMaterial = material;
-}
-
-__forceinline Material^ GameObject::HitMaterial()
-{
-    return m_hitMaterial;
-}
-
-__forceinline void GameObject::Mesh(_In_ MeshObject^ mesh)
-{
-    m_mesh = mesh;
-}
+//__forceinline Material^ GameObject::NormalMaterial()
+//{
+//    return m_normalMaterial;
+//}
+//
+//__forceinline void GameObject::HitMaterial(_In_ Material^ material)
+//{
+//    m_hitMaterial = material;
+//}
+//
+//__forceinline Material^ GameObject::HitMaterial()
+//{
+//    return m_hitMaterial;
+//}
+//
+//__forceinline void GameObject::Mesh(_In_ MeshObject^ mesh)
+//{
+//    m_mesh = mesh;
+//}
 
 __forceinline void GameObject::HitSound(_In_ SoundEffect^ hitSound)
 {
