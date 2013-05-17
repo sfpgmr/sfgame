@@ -33,12 +33,16 @@ cbuffer ConstantBufferChangesEveryPrim : register (b3)
     float  specularExponent;
 };
 
+
+
 struct VertextShaderInput
 {
     float4 position : POSITION;
     float4 normal : NORMAL;
     float2 textureUV : TEXCOORD0;
 };
+
+
 
 struct PixelShaderInput
 {

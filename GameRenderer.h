@@ -101,10 +101,15 @@ protected private:
     Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangeOnResize;
     Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangesEveryFrame;
     Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangesEveryPrim;
+    Microsoft::WRL::ComPtr<ID3D11Buffer>                m_Buffer2D;
     Microsoft::WRL::ComPtr<ID3D11SamplerState>          m_samplerLinear;
     Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_vertexShader;
     Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_vertexShaderFlat;
+    Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_2dVertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_pixelShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_pixelShaderFlat;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_2dPixelShader;
     Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_vertexLayout;
+    Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_2dVertexLayout;
+
 };

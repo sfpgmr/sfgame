@@ -10,7 +10,10 @@
 #include <wrl.h>
 #include <d3d11_1.h>
 #include <d2d1_1.h>
+#include <d2d1helper.h>
 #include <d2d1effects.h>
+#include <d2d1effecthelpers.h>
+
 #include <dwrite_1.h>
 #include <wincodec.h>
 #include <DirectXMath.h>
@@ -22,6 +25,9 @@
 #include <mfidl.h>
 #include <mfapi.h>
 #include <mfreadwrite.h>
+//#include <dcomp.h>
+
+#include <wincodecsdk.h>
 
 #include <XInput.h>
 

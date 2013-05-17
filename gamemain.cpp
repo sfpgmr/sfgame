@@ -205,7 +205,7 @@ void GameMain::UpdateDynamics()
 {
     float timeTotal = m_timer->PlayingTime();
     float timeFrame = m_timer->DeltaTime();
-
+	m_game.step();
 }
 
 //----------------------------------------------------------------------

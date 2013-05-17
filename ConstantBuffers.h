@@ -14,11 +14,20 @@ struct PNTVertex
     DirectX::XMFLOAT2 textureCoordinate;
 };
 
+struct Vertex2D {
+    DirectX::XMFLOAT3 position;
+};
+
 static D3D11_INPUT_ELEMENT_DESC PNTVertexLayout[] =
 {
     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
     {"NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
+};
+
+static D3D11_INPUT_ELEMENT_DESC Vertex2DLayout[] =
+{
+    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0}
 };
 
 struct ConstantBufferNeverChanges
@@ -44,5 +53,11 @@ struct ConstantBufferChangesEveryPrim
     DirectX::XMFLOAT4 diffuseColor;
     DirectX::XMFLOAT4 specularColor;
     float specularPower;
+};
+
+struct Buffer2D 
+{
+	DirectX::XMFLOAT4X4 transform;
+	DirectX::XMFLOAT4 color;
 };
 
