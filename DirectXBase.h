@@ -9,9 +9,6 @@
 
 #include "DirectXSample.h"
 
-#define _WRL_PTR_TYPEDEF(x) typedef Microsoft::WRL::ComPtr<x> x ## Ptr
-
-
 
 // Direct Write
 

@@ -332,18 +332,20 @@ void GameHud::Render(
         //    game->TimeRemaining()
         //    );
 
-        //d2dContext->DrawText(
-        //    wsbuffer,
-        //    length,
-        //    m_textFormatBody.Get(),
-        //    D2D1::RectF(
-        //        windowBounds.Width - GameConstants::HudRightOffset,
-        //        GameConstants::HudTopOffset,
-        //        windowBounds.Width,
-        //        GameConstants::HudTopOffset + (GameConstants::HudBodyPointSize + GameConstants::Margin) * 3
-        //        ),
-        //    m_textBrush.Get()
-        //    );
+        
+        std::wstring out((boost::wformat(L"Time:%04.08f") % game->processTime()).str());
+        d2dContext->DrawText(
+            out.data(),
+            out.size(),
+            m_textFormatBody.Get(),
+            D2D1::RectF(
+                windowBounds.Width - GameConstants::HudRightOffset,
+                GameConstants::HudTopOffset,
+                windowBounds.Width,
+                GameConstants::HudTopOffset + (GameConstants::HudBodyPointSize + GameConstants::Margin) * 3
+                ),
+            m_textBrush.Get()
+            );
 
         // Using the unicode characters starting at 0x2780 ( ➀ ) for the consecutive levels of the game.
         // For completed levels start with 0x278A ( ➊ ) (This is 0x2780 + 10).

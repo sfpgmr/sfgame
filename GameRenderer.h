@@ -52,64 +52,87 @@
 
 ref class GameMain;
 ref class GameHud;
-
+namespace sf { 
+  ref class VideoWriter;
+  class AutoMF;
+}
 ref class GameRenderer : public DirectXBase
 {
 internal:
-    GameRenderer();
+  GameRenderer();
 
-    virtual void Initialize(
-        _In_ Windows::UI::Core::CoreWindow^ window,
-        _In_ Windows::UI::Xaml::Controls::SwapChainBackgroundPanel^ swapChainPanel,
-        float dpi
-        ) override;
+  virtual void Initialize(
+    _In_ Windows::UI::Core::CoreWindow^ window,
+    _In_ Windows::UI::Xaml::Controls::SwapChainBackgroundPanel^ swapChainPanel,
+    float dpi
+    ) override;
 
-    virtual void CreateDeviceIndependentResources() override;
-    virtual void CreateDeviceResources() override;
-    virtual void UpdateForWindowSizeChange() override;
-    virtual void Render() override;
-    virtual void HandleDeviceLost() override;
+  virtual void CreateDeviceIndependentResources() override;
+  virtual void CreateDeviceResources() override;
+  virtual void UpdateForWindowSizeChange() override;
+  virtual void Render() override;
+  virtual void HandleDeviceLost() override;
 
-    concurrency::task<void> CreateGameDeviceResourcesAsync(_In_ GameMain^ game);
-    void FinalizeCreateGameDeviceResources();
-    concurrency::task<void> LoadLevelResourcesAsync();
-    void FinalizeLoadLevelResources();
+  concurrency::task<void> CreateGameDeviceResourcesAsync(_In_ GameMain^ game);
+  void FinalizeCreateGameDeviceResources();
+  concurrency::task<void> LoadLevelResourcesAsync();
+  void FinalizeLoadLevelResources();
 
-    void SetBackground(uint32 background);
+  void SetBackground(uint32 background);
 
-    GameHud^ Hud();
+  GameHud^ Hud();
 
 #if defined(_DEBUG)
-    void ReportLiveDeviceObjects();
+  void ReportLiveDeviceObjects();
 #endif
 
 protected private:
-    bool                                                m_initialized;
-    bool                                                m_gameResourcesLoaded;
-    bool                                                m_levelResourcesLoaded;
-    GameHud^                                            m_gameHud;
-    GameMain^											m_game;
+  bool                                                m_initialized;
+  bool                                                m_gameResourcesLoaded;
+  bool                                                m_levelResourcesLoaded;
+  GameHud^                                            m_gameHud;
+  GameMain^											m_game;
+  float m_scale;
 
-    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_sphereTexture;
-    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_cylinderTexture;
-    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_ceilingTexture[GameConstants::MaxBackgroundTextures];
-    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_floorTexture[GameConstants::MaxBackgroundTextures];
-    //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_wallsTexture[GameConstants::MaxBackgroundTextures];
+  //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_sphereTexture;
+  //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_cylinderTexture;
+  //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_ceilingTexture[GameConstants::MaxBackgroundTextures];
+  //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_floorTexture[GameConstants::MaxBackgroundTextures];
+  //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_wallsTexture[GameConstants::MaxBackgroundTextures];
 
-    // Constant Buffers
-    Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferNeverChanges;
-    Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangeOnResize;
-    Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangesEveryFrame;
-    Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangesEveryPrim;
-    Microsoft::WRL::ComPtr<ID3D11Buffer>                m_Buffer2D;
-    Microsoft::WRL::ComPtr<ID3D11SamplerState>          m_samplerLinear;
-    Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_vertexShader;
-    Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_vertexShaderFlat;
-    Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_2dVertexShader;
-    Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_pixelShader;
-    Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_pixelShaderFlat;
-    Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_2dPixelShader;
-    Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_vertexLayout;
-    Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_2dVertexLayout;
+  // Constant Buffers
+  Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferNeverChanges;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangeOnResize;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangesEveryFrame;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangesEveryPrim;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>                m_Buffer2D;
+  Microsoft::WRL::ComPtr<ID3D11SamplerState>          m_samplerLinear;
+  Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_vertexShader;
+  Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_vertexShaderFlat;
+  Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_2dVertexShader;
+  Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_pixelShader;
+  Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_pixelShaderFlat;
+  Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_2dPixelShader;
+  Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_vertexLayout;
+  Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_2dVertexLayout;
+
+  // スクリーンキャプチャー用リソース
+  sf::VideoWriter^ m_videoWriter;
+  Windows::Storage::Streams::IRandomAccessStream^ m_videoStream;
+  ID3D11Texture2DPtr m_VideoSrcTexure;
+  ID3D11ShaderResourceViewPtr    m_videoSrcView;
+  ID3D11RenderTargetViewPtr m_videoRenderTargetView;
+  ID3D11Texture2DPtr m_VideoDestTexture;
+  ID3D11Texture2DPtr m_VideoStageTexture;
+  Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_videoVertexShader;
+  Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_videoPixelShader;
+  Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_videoVertexLayout;
+  ID3D11BufferPtr                 m_VideoVertex;
+  ID3D11RasterizerState1Ptr  m_VideoRasterState;
+  ID3D11SamplerStatePtr m_videoSamplerState;
+  std::unique_ptr<sf::AutoMF> m_mf;
+
+private:
+  void WriteVideoFrame();
 
 };

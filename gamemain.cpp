@@ -7,7 +7,7 @@
 
 #include "pch.h"
 #include "GameRenderer.h"
-
+#include "sfmf.h"
 #include "DirectXSample.h"
 #include "Level1.h"
 #include "Animate.h"
@@ -15,7 +15,7 @@
 //#include "Cylinder.h"
 //#include "Face.h"
 #include "MediaReader.h"
-
+extern void testout();
 using namespace concurrency;
 using namespace DirectX;
 using namespace Microsoft::WRL;
@@ -30,7 +30,7 @@ GameMain::GameMain():
     m_levelActive(false),
     m_levelCount(0),
     m_currentLevel(0),
-    m_activeBackground(0)
+    m_activeBackground(0),m_processTime(0.0f)
 {
     m_topScore.totalHits = 0;
     m_topScore.totalShots = 0;
@@ -97,6 +97,9 @@ void GameMain::Initialize(
 
     // Load the currentScore for saved state if it exists.
     LoadState();
+
+
+
 
     m_controller->Active(false);
 }
@@ -203,9 +206,10 @@ void GameMain::OnResuming()
 
 void GameMain::UpdateDynamics()
 {
-    float timeTotal = m_timer->PlayingTime();
     float timeFrame = m_timer->DeltaTime();
-	m_game.step();
+    float start = m_timer->Now();
+	  m_game.step(timeFrame);
+    m_processTime = (m_processTime + (m_timer->Now() - start)) / 2.0f;
 }
 
 //----------------------------------------------------------------------

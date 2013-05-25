@@ -24,4 +24,7 @@
       </VisualElements>
     </Application>
   </Applications>
+  <Capabilities>
+    <Capability Name="videosLibrary" />
+  </Capabilities>
 </Package>

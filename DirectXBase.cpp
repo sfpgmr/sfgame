@@ -221,12 +221,13 @@ void DirectXBase::CheckStereoEnabledStatus()
         dxgiDevice->GetAdapter(&dxgiAdapter)
         );
 
+
     // next, get the parent factory from the DXGI adapter
     ComPtr<IDXGIFactory2> dxgiFactory;
     DX::ThrowIfFailed(
         dxgiAdapter->GetParent(IID_PPV_ARGS(&dxgiFactory))
         );
-
+    
     m_stereoEnabled = dxgiFactory->IsWindowedStereoEnabled() ? true : false;
 }
 

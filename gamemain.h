@@ -33,6 +33,7 @@
 #include "MoveLookController.h"
 #include "PersistentState.h"
 #include "GameRenderer.h"
+#include "sfmf.h"
 #include "Camera.h"
 #include "game.h"
 
@@ -98,12 +99,14 @@ internal:
     HighScoreEntry HighScore()                  { return m_topScore; };
     Level^ CurrentLevel()                       { return m_level[m_currentLevel]; };
     Camera^ GameCamera()                        { return m_camera; };
-	std::vector<GameObject^> RenderObjects()    { return m_renderObjects; };
-	sf::game_base& game() {return m_game;} 
+	  std::vector<GameObject^> RenderObjects()    { return m_renderObjects; };
+	  sf::game_base& game() {return m_game;} 
+    float processTime(){return m_processTime;}
 
     void UpdateGameConfig(Windows::ApplicationModel::Store::LicenseInformation^ licenseInformation);
     void SetBackground(uint32 background);
     void CycleBackground();
+
 
 
 private:
@@ -117,7 +120,7 @@ private:
 
     MoveLookController^                         m_controller;
     GameRenderer^                               m_renderer;
-	Camera^                                     m_camera;
+  	Camera^                                     m_camera;
 
     Audio^                                      m_audioController;
 
@@ -134,10 +137,12 @@ private:
 
     GameConfig                                  m_gameConfig;
     uint32                                      m_activeBackground;
-	sf::scroll_test		m_game;
+	  sf::scroll_game		m_game;
+    float m_processTime;
 
     std::vector<GameObject^>                    m_objects;           // List of all objects to be included in intersection calculations.
     std::vector<GameObject^>                    m_renderObjects;     // List of all objects to be rendered.
+
 
 };
 

@@ -20,7 +20,7 @@
 
   ==============================================================================
 */
-
 #include "game_base.h"
+#include "game_obj_base.h"
 //#include "first_b2d.h"
-#include "scroll_test.h"
+#include "scroll_game.h"

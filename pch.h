@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <Windows.h>
+#include <windowsx.h>
 #include <wrl.h>
 #include <d3d11_1.h>
 #include <d2d1_1.h>
@@ -34,7 +36,14 @@
 #include <stdio.h>
 #include <vector>
 #include <memory>
+#include <array>
+#include <boost\format.hpp>
 
 #include <ppltasks.h>
 #include <agile.h>
 #include <Box2D.h>
+
+#define _WRL_PTR_TYPEDEF(x) typedef Microsoft::WRL::ComPtr<x> x ## Ptr
+
+#define CHK(statement)	{HRESULT _hr = (statement); if (FAILED(_hr)) { throw ref new Platform::COMException(_hr); };}
+

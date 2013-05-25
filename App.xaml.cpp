@@ -36,6 +36,7 @@ App::App():
     m_haveFocus(true),
     m_updateState(UpdateEngineState::WaitingForResources)
 {
+
     InitializeComponent();
 
 #if defined(_DEBUG)

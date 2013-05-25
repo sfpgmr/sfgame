@@ -93,7 +93,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>H:\libs\Box2D\Box2D;H:\libs\Box2D;$(IncludePath)</IncludePath>
-    <LibraryPath>H:\libs\Box2D\Build\vs2010\bin\Debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>H:\libs\Box2D\Build\vs2010\bin\Debug;H:\libs\DirectXTK\Bin\Windows8\Win32\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>H:\libs\Box2D\Box2D;H:\libs\Box2D;$(IncludePath)</IncludePath>
@@ -190,6 +190,8 @@
     <ClInclude Include="DirectXSample.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="game_base.h" />
+    <ClInclude Include="game_obj.h" />
+    <ClInclude Include="game_obj_base.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshObject.h" />
     <ClInclude Include="PersistentState.h" />
@@ -199,6 +201,7 @@
     <ClCompile Include="BasicReaderWriter.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="game_obj.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshObject.cpp" />
     <ClCompile Include="PersistentState.cpp" />
@@ -214,7 +217,8 @@
     <ClInclude Include="Level1.h" />
     <ClInclude Include="MediaReader.h" />
     <ClInclude Include="MoveLookController.h" />
-    <ClInclude Include="scroll_test.h" />
+    <ClInclude Include="scroll_game.h" />
+    <ClInclude Include="sfmf.h" />
     <ClInclude Include="SoundEffect.h" />
     <ClInclude Include="StereoProjection.h" />
   </ItemGroup>
@@ -227,7 +231,8 @@
     <ClCompile Include="Level1.cpp" />
     <ClCompile Include="MediaReader.cpp" />
     <ClCompile Include="MoveLookController.cpp" />
-    <ClCompile Include="scroll_test.cpp" />
+    <ClCompile Include="scroll_game.cpp" />
+    <ClCompile Include="sfmf.cpp" />
     <ClCompile Include="SoundEffect.cpp" />
     <ClCompile Include="StereoProjection.cpp" />
     <ClInclude Include="pch.h" />
@@ -332,6 +337,7 @@
     <None Include="daywall.dds">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="VideoShader.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="2dPixelShader.hlsl">
@@ -341,6 +347,8 @@
     </FxCompile>
     <FxCompile Include="2dVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="PixelShader.hlsl">
       <EntryPointName>main</EntryPointName>
@@ -385,6 +393,22 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <HeaderFileOutput>
       </HeaderFileOutput>
+    </FxCompile>
+    <FxCompile Include="VideoPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VideoVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

@@ -21,6 +21,16 @@ GameTimer::GameTimer():
     Reset();
 }
 
+float GameTimer::Now()
+{
+    LARGE_INTEGER currentTime;
+    if (!QueryPerformanceCounter(&currentTime))
+    {
+        throw ref new Platform::FailureException();
+    }
+    return (float)(static_cast<double>(currentTime.QuadPart) * (double)m_secondsPerCount);
+}
+
 // Returns the total time elapsed since Reset() was called, NOT counting any
 // time when the clock is stopped.
 float GameTimer::PlayingTime()

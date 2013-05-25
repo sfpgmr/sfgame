@@ -15,6 +15,7 @@ internal:
     float PlayingTime();            // Return the Elapsed time the Game has been active in seconds since Reset
     void PlayingTime(float time);   // Set the Elapsed playing time -- used for restarting in the middle of a game
     float DeltaTime();              // Return the Delta time between the last two updates
+    float Now();
 
     void Reset();
     void Start();
