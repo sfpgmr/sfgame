@@ -118,7 +118,7 @@
             </StackPanel>
         </Grid>
 
-        <!-- Center of the outer Grid.  This is the Center 50% of the screen -->
+        <!-- Center of the outer Grid.  This is the Center 50% of the m_screenInfo -->
         <Grid x:Name="GameInfoOverlay" Grid.Row="1" Grid.Column="1" Background="{StaticResource PageBackgroundBrush}" Visibility="Collapsed"
           Tapped="OnGameInfoOverlayTapped">
             <Grid.RowDefinitions>

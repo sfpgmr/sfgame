@@ -37,16 +37,16 @@
 //
 // The touch portion of the MoveLookController divides the window area of the app
 // into three distinct regions:
-//     MoveRect - the rectangle of the screen where touch input is converted into 
+//     MoveRect - the rectangle of the m_screenInfo where touch input is converted into 
 //         a virtual joystick where the vertical motion will be translated into 
 //         forward/backward position motion and horizontal motion will be translated
 //         into left/right position motion.
-//     FireRect - the rectangle of the screen where touch input will be converted
+//     FireRect - the rectangle of the m_screenInfo where touch input will be converted
 //         into a fire button.  A touch sequence of PointerPressed will result in
 //         IsFiring method to return true in AutoFire mode, otherwise a PointPressed
 //         followed by a PointerReleased event in the FireRect will result in the
 //         IsFiring method returning true once.
-//     Outside MoveRect & FireRect - this area of the screen controls the Look control
+//     Outside MoveRect & FireRect - this area of the m_screenInfo controls the Look control
 //         and updates the LookDirection.
 //
 // The following controls are mapped from the Xbox controller using XInput:

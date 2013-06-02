@@ -6,10 +6,10 @@
 //// Copyright (c) Microsoft Corporation. All rights reserved
 
 #include "pch.h"
+#include "ConstantBuffers.h"
 #include "DirectXSample.h"
 #include "GameRenderer.h"
 #include "sfmf.h"
-#include "ConstantBuffers.h"
 #include "BasicLoader.h"
 #include "windows.ui.xaml.media.dxinterop.h"
 #include "game.h"
@@ -26,11 +26,18 @@ GameRenderer::GameRenderer() :
   m_initialized(false),
   m_gameResourcesLoaded(false),
   m_levelResourcesLoaded(false),
-  m_scale(5.0f)
+  m_d2dScale(5.0f),
+  m_d3dScale(0.01f),
+  m_videoViewport(0.0f,0.0f,(float)VIDEO_WIDTH,(float)VIDEO_HEIGHT),
+  m_captureVideo(true),
+  m_drawd2d(false)
 {
-   m_mf.reset(new sf::AutoMF);
 
-
+  m_clearColor[0] = 0.0f;
+  m_clearColor[1] = 0.0f;
+  m_clearColor[2] = 0.0f;
+  m_clearColor[3] = 1.0f;
+  m_mf.reset(new sf::AutoMF);
 }
 
 //----------------------------------------------------------------------
@@ -116,7 +123,7 @@ void GameRenderer::UpdateForWindowSizeChange()
       0,
       0
       );
-    m_game->game().screen_aabb(m_renderTargetSize.Width,m_renderTargetSize.Height,m_scale);
+    m_game->game().screen_aabb(1.0f /  (m_renderTargetSize.Height / m_renderTargetSize.Width),1.0f,m_d3dScale);
   }
 }
 
@@ -159,9 +166,14 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
     m_d3dDevice->CreateBuffer(&bd, nullptr, &m_constantBufferChangesEveryPrim)
     );
 
-  bd.ByteWidth = (sizeof(Buffer2D) + 15) / 16 * 16;
+  bd.ByteWidth = (sizeof(ScreenInfo) + 15) / 16 * 16;
   DX::ThrowIfFailed(
-    m_d3dDevice->CreateBuffer(&bd, nullptr, &m_Buffer2D)
+    m_d3dDevice->CreateBuffer(&bd, nullptr, &m_screenInfo)
+    );
+
+  bd.ByteWidth = (sizeof(BodyInfo) + 15) / 16 * 16;
+  DX::ThrowIfFailed(
+    m_d3dDevice->CreateBuffer(&bd, nullptr, &m_BodyInfoBuffer)
     );
 
   D3D11_SAMPLER_DESC sampDesc;
@@ -178,10 +190,41 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
     m_d3dDevice->CreateSamplerState(&sampDesc, &m_samplerLinear)
     );
 
+  // ビユーポート情報の設定
+  m_viewport = CD3D11_VIEWPORT(
+        0.0f,
+        0.0f,
+        m_renderTargetSize.Width,
+        m_renderTargetSize.Height
+        );
+
+  {
+    D3D11_RASTERIZER_DESC1 RasterizerDesc = {
+      D3D11_FILL_SOLID,
+      D3D11_CULL_NONE,	//ポリゴンの裏表を無くす
+      FALSE,
+      0,
+      0.0f,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE
+    };
+    m_d3dDevice->CreateRasterizerState1(&RasterizerDesc,&m_2dRasterizerState);
+  }
+
+  //UINT num_vieports = 1;
+  //m_d3dContext->RSGetViewports(&num_vieports,&m_viewport);
+
   // Start the async tasks to load the shaders and textures.
   BasicLoader^ loader = ref new BasicLoader(m_d3dDevice.Get());
 
   std::vector<task<void>> tasks;
+
+  D3D11_FEATURE_DATA_D3D11_OPTIONS  options = {};
+  m_d3dDevice->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS,&options,sizeof(D3D11_FEATURE_DATA_D3D11_OPTIONS));
+
 
   uint32 numElements = ARRAYSIZE(PNTVertexLayout);
   tasks.push_back(loader->LoadShaderAsync("VertexShader.cso", PNTVertexLayout, numElements, &m_vertexShader, &m_vertexLayout));
@@ -189,7 +232,7 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
   tasks.push_back(loader->LoadShaderAsync("2DVertexShader.cso", Vertex2DLayout, ARRAYSIZE(Vertex2DLayout), &m_2dVertexShader, &m_2dVertexLayout));
   tasks.push_back(loader->LoadShaderAsync("VideoVertexShader.cso", VideoVertex2DLayout, ARRAYSIZE(VideoVertex2DLayout), &m_videoVertexShader, &m_videoVertexLayout));
 
-  
+
   tasks.push_back(loader->LoadShaderAsync("PixelShader.cso", &m_pixelShader));
   tasks.push_back(loader->LoadShaderAsync("PixelShaderFlat.cso", &m_pixelShaderFlat));
   tasks.push_back(loader->LoadShaderAsync("2DPixelShader.cso", &m_2dPixelShader));
@@ -217,36 +260,43 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
   //tasks.push_back(loader->LoadTextureAsync("dayceiling.dds", nullptr, &m_ceilingTexture[2]));
   //tasks.push_back(loader->LoadTextureAsync("dayfloor.dds", nullptr, &m_floorTexture[2]));
   //tasks.push_back(loader->LoadTextureAsync("daywall.dds", nullptr, &m_wallsTexture[2]));
+
+  //
+  // ビデオ書き込み用リソースの生成
+  //
   if(m_swapChain){
-   tasks.push_back(create_task([this]()
-   {
+    tasks.push_back(create_task([this]()
+    {
 
-      // Get the underlying DXGI device of the Direct3D device.
-
+      // スワップチェインのバッファを取得する
       ID3D11Texture2DPtr buffer;
       DX::ThrowIfFailed(m_swapChain->GetBuffer(0,IID_PPV_ARGS(&buffer)));
       D3D11_TEXTURE2D_DESC desc;
       buffer->GetDesc(&desc);
 
+      // スワップチェインバッファの中身の複製を保存するテクスチャの作成
       desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
       desc.MiscFlags = 0;
       desc.CPUAccessFlags = 0;
       desc.Usage = D3D11_USAGE_DEFAULT;
 
-      DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,nullptr,&m_VideoSrcTexure));
+      DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,nullptr,&m_videoSrcTexure));
+      // 複製テクスチャー用のSRV
       CD3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc(
-        m_VideoSrcTexure.Get(),
+        m_videoSrcTexure.Get(),
         D3D11_SRV_DIMENSION_TEXTURE2D
         );
-      DX::ThrowIfFailed(m_d3dDevice->CreateShaderResourceView(m_VideoSrcTexure.Get(),&shaderResourceViewDesc,&m_videoSrcView));
+      DX::ThrowIfFailed(m_d3dDevice->CreateShaderResourceView(m_videoSrcTexure.Get(),&shaderResourceViewDesc,&m_videoSrcView));
 
+      // ビデオサイズに縮小した画像を格納するためのテクスチャーを作成
       desc.Width = VIDEO_WIDTH;
       desc.Height = VIDEO_HEIGHT;
       desc.BindFlags = D3D11_BIND_RENDER_TARGET;
 
-      DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,0,&m_VideoDestTexture));
+      DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,0,&m_videoDestTexture));
 
-      CD3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc(m_VideoDestTexture.Get(),
+      // RTVの作成
+      CD3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc(m_videoDestTexture.Get(),
         D3D11_RTV_DIMENSION_TEXTURE2D,
         DXGI_FORMAT_B8G8R8A8_UNORM,
         0,
@@ -255,26 +305,27 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
         );
 
       DX::ThrowIfFailed(
-          m_d3dDevice->CreateRenderTargetView(
-              m_VideoDestTexture.Get(),
-              &renderTargetViewDesc,
-              &m_videoRenderTargetView
-              )
-          );
+        m_d3dDevice->CreateRenderTargetView(
+        m_videoDestTexture.Get(),
+        &renderTargetViewDesc,
+        &m_videoRenderTargetView
+        )
+        );
 
-      	D3D11_RASTERIZER_DESC1 RasterizerDesc = {
-			D3D11_FILL_SOLID,
-			D3D11_CULL_NONE,	//ポリゴンの裏表を無くす
-			FALSE,
-			0,
-			0.0f,
-			FALSE,
-			FALSE,
-			FALSE,
-			FALSE,
-			FALSE
-	};
+      D3D11_RASTERIZER_DESC1 RasterizerDesc = {
+        D3D11_FILL_SOLID,
+        D3D11_CULL_NONE,	//ポリゴンの裏表を無くす
+        FALSE,
+        0,
+        0.0f,
+        FALSE,
+        FALSE,
+        FALSE,
+        FALSE,
+        FALSE
+      };
 
+      // テクスチャ・サンプラの生成
       D3D11_SAMPLER_DESC sampDesc = {};
 
       sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -286,18 +337,21 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
       sampDesc.MinLOD = 0;
       sampDesc.MaxLOD = FLT_MAX;
       DX::ThrowIfFailed(
-      m_d3dDevice->CreateSamplerState(&sampDesc, &m_videoSamplerState));
+        m_d3dDevice->CreateSamplerState(&sampDesc, &m_videoSamplerState));
 
-      m_d3dDevice->CreateRasterizerState1(&RasterizerDesc,&m_VideoRasterState);
+      m_d3dDevice->CreateRasterizerState1(&RasterizerDesc,&m_videoRasterState);
 
+      // CPUから読み取り可能なサーフェースを生成
       desc.BindFlags = 0;
       desc.MiscFlags = 0;
       desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
       desc.Usage = D3D11_USAGE_STAGING;
 
-      DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,0,&m_VideoStageTexture));
+      DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,0,&m_videoStageTexture));
 
       Windows::Storage::StorageFile^ st = create_task(Windows::Storage::KnownFolders::VideosLibrary->CreateFileAsync(L"output.m4v",Windows::Storage::CreationCollisionOption::ReplaceExisting)).get();
+
+      // テクスチャーをビデオストリームに保存するクラスの作成
       m_videoWriter  = ref new sf::VideoWriter(create_task(st->OpenAsync(Windows::Storage::FileAccessMode::ReadWrite)).get());
     }));
   }
@@ -308,9 +362,11 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
     wait(GameConstants::InitialLoadingDelay);
   }));
 
-  m_game->game().screen_aabb(m_windowBounds.Width,m_windowBounds.Height,m_scale);
- // sf::WriteAsync(m_videoStream);
-                 //m_videoWriter = ref new sf::VideoWriter(m_videoStream);
+    m_game->game().screen_aabb(1.0f / ( m_renderTargetSize.Height / m_renderTargetSize.Width),1.0f,m_d3dScale);
+
+//  m_game->game().screen_aabb(m_windowBounds.Width,m_windowBounds.Height,m_d2dScale);
+  // sf::WriteAsync(m_videoStream);
+  //m_videoWriter = ref new sf::VideoWriter(m_videoStream);
 
   // Return the task group of all the async tasks for loading the shader and texture assets.
   return when_all(tasks.begin(), tasks.end());
@@ -338,20 +394,11 @@ void GameRenderer::FinalizeCreateGameDeviceResources()
   constantBufferNeverChanges.lightColor = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
   m_d3dContext->UpdateSubresource(m_constantBufferNeverChanges.Get(), 0, nullptr, &constantBufferNeverChanges, 0, 0);
 
-  Buffer2D buffer2D;
-  buffer2D.color = XMFLOAT4(1.0f,1.0f,1.0f,1.0f);
-  XMMATRIX mat = XMMatrixIdentity();
-  mat *= XMMatrixScaling(5.0f,5.0f,1.0f);
-
-  XMStoreFloat4x4( &buffer2D.transform,XMMatrixAffineTransformation2D
-    (
-    XMVectorSet(5.0f,5.0f,1.0f,1.0f),
-    XMVectorZero(),
-    0.0f,
-    XMVectorSet(m_renderTargetSize.Width,m_renderTargetSize.Height,0.0f,0.0f)));
-
-  buffer2D.transform._22 *= -1.0f;
-  m_d3dContext->UpdateSubresource(m_Buffer2D.Get(), 0, nullptr, &buffer2D, 0, 0);
+  ScreenInfo screenInfo = {};
+  screenInfo.offset = XMFLOAT2(0.0f,0.0f);
+  screenInfo.aspect = XMFLOAT2(m_windowBounds.Height / m_windowBounds.Width,1.0f);
+  screenInfo.scale = XMFLOAT2(m_d3dScale,m_d3dScale);
+  m_d3dContext->UpdateSubresource(m_screenInfo.Get(), 0, nullptr, &screenInfo, 0, 0);
 
   // For the targets, there are two unique generated textures.
   // Each texture image includes the number of the texture.
@@ -486,7 +533,7 @@ void GameRenderer::FinalizeCreateGameDeviceResources()
   sphere->NormalMaterial(sphereMaterial);
   }
   }
-
+  */
   // Ensure that the camera has been initialized with the right Projection
   // matrix.  The camera is not created at the time the first window resize event
   // occurs.
@@ -521,12 +568,8 @@ void GameRenderer::FinalizeCreateGameDeviceResources()
   0,
   0
   );
-  */
 
   float adjust_width  = (m_windowBounds.Width / m_windowBounds.Height) / (((float)VIDEO_WIDTH / (float)VIDEO_HEIGHT));
-//    sqrt(m_windowBounds.Height * m_windowBounds.Height + m_windowBounds.Width * m_windowBounds.Width) 
-//      / sqrt((float)(VIDEO_HEIGHT * VIDEO_HEIGHT) + (float)(VIDEO_WIDTH * VIDEO_WIDTH));  
-  float u =  m_windowBounds.Width / (float)VIDEO_WIDTH;  
   VertexVideo videoVerticies[4] =
   {
     {DirectX::XMFLOAT2(-adjust_width,-1.0f),DirectX::XMFLOAT2(0.0f,0.0f)},
@@ -535,23 +578,58 @@ void GameRenderer::FinalizeCreateGameDeviceResources()
     {DirectX::XMFLOAT2(adjust_width,1.0f),DirectX::XMFLOAT2(1.0f,1.0f)}
   };
 
-  
-	//頂点バッファ作成
-	D3D11_BUFFER_DESC BufferDesc;
-	BufferDesc.ByteWidth = sizeof(VertexVideo) * ARRAYSIZE(videoVerticies);
-	BufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	BufferDesc.CPUAccessFlags = 0;
-	BufferDesc.MiscFlags = 0;
-	BufferDesc.StructureByteStride = sizeof(float);
 
-	D3D11_SUBRESOURCE_DATA SubResourceData;
-	SubResourceData.pSysMem = videoVerticies;
-	SubResourceData.SysMemPitch = 0;
-	SubResourceData.SysMemSlicePitch = 0;
+  //頂点バッファ作成
+  D3D11_BUFFER_DESC BufferDesc;
+  BufferDesc.ByteWidth = sizeof(VertexVideo) * ARRAYSIZE(videoVerticies);
+  BufferDesc.Usage = D3D11_USAGE_DEFAULT;
+  BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+  BufferDesc.CPUAccessFlags = 0;
+  BufferDesc.MiscFlags = 0;
+  BufferDesc.StructureByteStride = sizeof(float);
 
-	DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc, &SubResourceData, &m_VideoVertex));
-  
+  D3D11_SUBRESOURCE_DATA SubResourceData;
+  SubResourceData.pSysMem = videoVerticies;
+  SubResourceData.SysMemPitch = 0;
+  SubResourceData.SysMemSlicePitch = 0;
+
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc, &SubResourceData, &m_videoVertex));
+
+  //頂点バッファ作成
+
+  for(int i = 0;i < MAX_2D_VERTICES;++i)
+  {
+    m_2dVertex[i].position = XMFLOAT3(0.0f,0.0f,0.0f);
+  }
+
+  BufferDesc.ByteWidth = sizeof(Vertex2D) * MAX_2D_VERTICES;
+  BufferDesc.Usage = D3D11_USAGE_DEFAULT;
+  BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+  BufferDesc.CPUAccessFlags = 0;
+  BufferDesc.MiscFlags = 0;
+  BufferDesc.StructureByteStride = sizeof(float);
+
+  SubResourceData.pSysMem = m_2dVertex.data();
+
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc, &SubResourceData, &m_2dVertexBuffer));
+
+  // インデックスバッファ作成
+  for(int i = 0;i < MAX_2D_INDEX;++i)
+  {
+    m_2dIndex[i] = 0;
+  }
+
+  BufferDesc.ByteWidth = sizeof(uint32) * MAX_2D_INDEX;
+  BufferDesc.Usage = D3D11_USAGE_DEFAULT;
+  BufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+  BufferDesc.CPUAccessFlags = 0;
+  BufferDesc.MiscFlags = 0;
+  BufferDesc.StructureByteStride = sizeof(uint32);
+
+  SubResourceData.pSysMem = m_2dIndex.data();
+
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc,&SubResourceData,&m_2dIndexBuffer));
+
   m_gameResourcesLoaded = true;
 }
 
@@ -629,6 +707,8 @@ void GameRenderer::Render()
     if (m_stereoEnabled && i > 0)
     {
       // Doing the Right Eye View.
+
+      m_d3dContext->RSSetViewports(1,&m_viewport);
       m_d3dContext->OMSetRenderTargets(1, m_d3dRenderTargetViewRight.GetAddressOf(), m_d3dDepthStencilView.Get());
       m_d3dContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
       m_d2dContext->SetTarget(m_d2dTargetBitmapRight.Get());
@@ -636,6 +716,7 @@ void GameRenderer::Render()
     else
     {
       // Doing the Mono or Left Eye View.
+      m_d3dContext->RSSetViewports(1,&m_viewport);
       m_d3dContext->OMSetRenderTargets(1, m_d3dRenderTargetView.GetAddressOf(), m_d3dDepthStencilView.Get());
       m_d3dContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
       m_d2dContext->SetTarget(m_d2dTargetBitmap.Get());
@@ -726,6 +807,12 @@ void GameRenderer::Render()
       }
     }
 
+    // Box2Dオブジェクトの描画
+    if(!m_drawd2d && m_game != nullptr && m_gameResourcesLoaded)
+    {
+      RenderBox2DObjectsD3D();
+    }
+
     m_d2dContext->BeginDraw();
 
     // To handle the swapchain being pre-rotated, set the D2D transformation to include it.
@@ -735,134 +822,9 @@ void GameRenderer::Render()
 
     if (m_game != nullptr && m_gameResourcesLoaded)
     {
-      {
-
-        sf::game_base& game(m_game->game());
-
-        b2World& world(game.world());
-
-        // Box2Dオブジェクトの描画
-        b2Body* body = world.GetBodyList();
-        int32 body_count = world.GetBodyCount();
-        //D2D1::Matrix3x2F mat = D2D1::Matrix3x2F::Identity();
-        //mat._22 = -1.0f;
-        //mat = mat * D2D1::Matrix3x2F::Scale(10.0f,10.0f);
-        //D2D1::Matrix3x2F matt = D2D1::Matrix3x2F::Translation(width_ / 2.0f,height_ /2.0f);
-        //mat._31 = matt._31;
-        //mat._32 = matt._32;
-
-        b2Mat22 mat;
-        //       b2Mat33 mat;
-        float32 scale = m_scale;
-        mat.SetZero();
-        mat.ex.x = 1.0f * scale;
-        mat.ey.y = -1.0f * scale;
-        b2Vec2 screen;
-        screen.x = m_renderTargetSize.Width  / 2.0f;
-        screen.y = m_renderTargetSize.Height / 2.0f;
-        ID2D1SolidColorBrushPtr brush,line_brush,obj_brush,edge_brush,circle_brush;
-
-        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::OrangeRed), &brush);
-        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f,1.0f,1.0f,0.5f), &line_brush);
-        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.2f,0.2f,1.0f,1.0f), &obj_brush);
-        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f,0.5f,0.5f,1.0f), &edge_brush);
-        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.5f,1.0f,0.5f,1.0f), &circle_brush);
-
-        //        float32 limit_y = -screen.y;
-        //mat.ez.x = width_ / 2.0f;
-        //mat.ez.y = height_ / 2.0f;
-
-        while(body)
-        {
-          b2Fixture* fix = body->GetFixtureList();
-          b2Transform transform = body->GetTransform();
-          transform.p.x -= game.scroll_offset();
-          while(fix){
-            b2Shape* s = fix->GetShape();
-            switch(s->GetType())
-            {
-            case  b2Shape::e_polygon:
-              {
-                b2PolygonShape* sp = static_cast<b2PolygonShape*>(s);
-                ID2D1PathGeometry1Ptr geometry;
-                //        ID2D1RectangleGeometryPtr 
-                m_d2dFactory->CreatePathGeometry(&geometry);
-                ID2D1GeometrySinkPtr sink;
-                geometry->Open(&sink);
-
-                int32 vcount = sp->GetVertexCount();
-
-                b2Vec2 v1 = sp->GetVertex(0);// + vb;
-                v1 = b2Mul(transform,v1);
-                v1 = b2Mul(mat,v1) + screen;
-
-
-                sink->BeginFigure(D2D1::Point2F(v1.x ,v1.y),D2D1_FIGURE_BEGIN_FILLED);
-                for(int j = 1;j < vcount;++j)
-                {
-                  b2Vec2 v = sp->GetVertex(j);// + vb;
-                  v = b2Mul(transform,v);
-                  v = b2Mul(mat,v) + screen;
-                  sink->AddLine(D2D1::Point2F(v.x,v.y));
-                }
-                sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-                sink->Close();
-
-                m_d2dContext->FillGeometry(geometry.Get(),obj_brush.Get());
-
-              }
-              break;
-            case  b2Shape::e_circle:
-              {
-                b2CircleShape* circle = static_cast<b2CircleShape*>(s);
-                b2Vec2 center = b2Mul(mat,b2Mul(transform, circle->m_p));
-                float32 radius = circle->m_radius * scale;
-                b2Vec2 axis = b2Mul(transform.q, b2Vec2(1.0f, 0.0f));
-                m_d2dContext->FillEllipse(D2D1::Ellipse(D2D1::Point2F(center.x + screen.x,center.y + screen.y),radius,radius),circle_brush.Get());
-              }
-              break;
-            case b2Shape::e_edge:
-              {
-                b2EdgeShape* edge = static_cast<b2EdgeShape*>(s);
-                b2Vec2 v1 = b2Mul(mat,b2Mul(transform, edge->m_vertex1)) + screen;
-                b2Vec2 v2 = b2Mul(mat,b2Mul(transform, edge->m_vertex2)) + screen;
-                m_d2dContext->DrawLine(D2D1::Point2F(v1.x ,v1.y),D2D1::Point2F(v2.x,v2.y),obj_brush.Get());
-
-              }
-              break;
-
-            case b2Shape::e_chain:
-              {
-                ID2D1PathGeometry1Ptr geometry;
-                //        ID2D1RectangleGeometryPtr 
-                m_d2dFactory->CreatePathGeometry(&geometry);
-                ID2D1GeometrySinkPtr sink;
-                geometry->Open(&sink);
-
-                b2ChainShape* chain = static_cast<b2ChainShape*>(s);
-                int32 count = chain->m_count;
-                const b2Vec2* vertices = chain->m_vertices;
-
-
-                b2Vec2 v1 = b2Mul(mat,b2Mul(transform, vertices[0])) + screen;
-                sink->BeginFigure(D2D1::Point2F(v1.x ,v1.y),D2D1_FIGURE_BEGIN_FILLED);
-                for (int32 i = 1; i < count; ++i)
-                {
-                  b2Vec2 v2 = b2Mul(mat,b2Mul(transform, vertices[i])) + screen;
-                  sink->AddLine(D2D1::Point2F(v2.x,v2.y));
-                }
-                sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-                sink->Close();
-                m_d2dContext->FillGeometry(geometry.Get(),edge_brush.Get());
-              }
-              break;
-            }
-            fix = fix->GetNext();
-          }
-          body = body->GetNext();
-        }
+      if(m_drawd2d){
+        RenderBox2DObjectsD2D();
       }
-
       // This is only used after the game state has been initialized.
       m_gameHud->Render(m_game, m_d2dContext.Get(), m_windowBounds);
     }
@@ -892,9 +854,325 @@ void GameRenderer::Render()
     //}
   }
   Present();
-  WriteVideoFrame();
+
+  if(m_captureVideo){
+    WriteVideoFrame();
+  }
+}
+
+void GameRenderer::RenderBox2DObjectsD2D()
+{
+
+  sf::game_base& game(m_game->game());
+
+  b2World& world(game.world());
+
+  // Box2Dオブジェクトの描画
+  b2Body* body = world.GetBodyList();
+  int32 body_count = world.GetBodyCount();
+  //D2D1::Matrix3x2F mat = D2D1::Matrix3x2F::Identity();
+  //mat._22 = -1.0f;
+  //mat = mat * D2D1::Matrix3x2F::Scale(10.0f,10.0f);
+  //D2D1::Matrix3x2F matt = D2D1::Matrix3x2F::Translation(width_ / 2.0f,height_ /2.0f);
+  //mat._31 = matt._31;
+  //mat._32 = matt._32;
+
+  b2Mat22 mat;
+  //       b2Mat33 mat;
+  float32 scale = m_d2dScale;
+  mat.SetZero();
+  mat.ex.x = 1.0f * scale;
+  mat.ey.y = -1.0f * scale;
+  b2Vec2 screen;
+  screen.x = m_renderTargetSize.Width  / 2.0f;
+  screen.y = m_renderTargetSize.Height / 2.0f;
+  ID2D1SolidColorBrushPtr brush,line_brush,obj_brush,edge_brush,circle_brush;
+
+  m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::OrangeRed), &brush);
+  m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f,1.0f,1.0f,0.5f), &line_brush);
+  m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.2f,0.2f,1.0f,1.0f), &obj_brush);
+  m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f,0.5f,0.5f,1.0f), &edge_brush);
+  m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.5f,1.0f,0.5f,1.0f), &circle_brush);
+
+  //        float32 limit_y = -screen.y;
+  //mat.ez.x = width_ / 2.0f;
+  //mat.ez.y = height_ / 2.0f;
+
+  while(body)
+  {
+    b2Fixture* fix = body->GetFixtureList();
+    b2Transform transform = body->GetTransform();
+    transform.p.x -= game.scroll_offset();
+    while(fix){
+      b2Shape* s = fix->GetShape();
+      switch(s->GetType())
+      {
+      case  b2Shape::e_polygon:
+        {
+          b2PolygonShape* sp = static_cast<b2PolygonShape*>(s);
+          ID2D1PathGeometry1Ptr geometry;
+          //        ID2D1RectangleGeometryPtr 
+          m_d2dFactory->CreatePathGeometry(&geometry);
+          ID2D1GeometrySinkPtr sink;
+          geometry->Open(&sink);
+
+          int32 vcount = sp->GetVertexCount();
+
+          b2Vec2 v1 = sp->GetVertex(0);// + vb;
+          v1 = b2Mul(transform,v1);
+          v1 = b2Mul(mat,v1) + screen;
 
 
+          sink->BeginFigure(D2D1::Point2F(v1.x ,v1.y),D2D1_FIGURE_BEGIN_FILLED);
+          for(int j = 1;j < vcount;++j)
+          {
+            b2Vec2 v = sp->GetVertex(j);// + vb;
+            v = b2Mul(transform,v);
+            v = b2Mul(mat,v) + screen;
+            sink->AddLine(D2D1::Point2F(v.x,v.y));
+          }
+          sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+          sink->Close();
+
+          m_d2dContext->FillGeometry(geometry.Get(),obj_brush.Get());
+
+        }
+        break;
+      case  b2Shape::e_circle:
+        {
+          b2CircleShape* circle = static_cast<b2CircleShape*>(s);
+          b2Vec2 center = b2Mul(mat,b2Mul(transform, circle->m_p));
+          float32 radius = circle->m_radius * scale;
+          b2Vec2 axis = b2Mul(transform.q, b2Vec2(1.0f, 0.0f));
+          m_d2dContext->FillEllipse(D2D1::Ellipse(D2D1::Point2F(center.x + screen.x,center.y + screen.y),radius,radius),circle_brush.Get());
+        }
+        break;
+      case b2Shape::e_edge:
+        {
+          b2EdgeShape* edge = static_cast<b2EdgeShape*>(s);
+          b2Vec2 v1 = b2Mul(mat,b2Mul(transform, edge->m_vertex1)) + screen;
+          b2Vec2 v2 = b2Mul(mat,b2Mul(transform, edge->m_vertex2)) + screen;
+          m_d2dContext->DrawLine(D2D1::Point2F(v1.x ,v1.y),D2D1::Point2F(v2.x,v2.y),obj_brush.Get());
+
+        }
+        break;
+
+      case b2Shape::e_chain:
+        {
+          ID2D1PathGeometry1Ptr geometry;
+          //        ID2D1RectangleGeometryPtr 
+          m_d2dFactory->CreatePathGeometry(&geometry);
+          ID2D1GeometrySinkPtr sink;
+          geometry->Open(&sink);
+
+          b2ChainShape* chain = static_cast<b2ChainShape*>(s);
+          int32 count = chain->m_count;
+          const b2Vec2* vertices = chain->m_vertices;
+
+
+          b2Vec2 v1 = b2Mul(mat,b2Mul(transform, vertices[0])) + screen;
+          sink->BeginFigure(D2D1::Point2F(v1.x ,v1.y),D2D1_FIGURE_BEGIN_FILLED);
+          for (int32 i = 1; i < count; ++i)
+          {
+            b2Vec2 v2 = b2Mul(mat,b2Mul(transform, vertices[i])) + screen;
+            sink->AddLine(D2D1::Point2F(v2.x,v2.y));
+          }
+          sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+          sink->Close();
+          m_d2dContext->FillGeometry(geometry.Get(),edge_brush.Get());
+        }
+        break;
+      }
+      fix = fix->GetNext();
+    }
+    body = body->GetNext();
+  }
+}
+
+void GameRenderer::RenderBox2DObjectsD3D()
+{
+
+  sf::game_base& game(m_game->game());
+
+  b2World& world(game.world());
+
+  m_d3dContext->IASetInputLayout(m_2dVertexLayout.Get());
+  uint32 stride = sizeof(Vertex2D);
+  uint32 offset = 0;
+  m_d3dContext->IASetVertexBuffers(0,1,m_2dVertexBuffer.GetAddressOf(),&stride,&offset);
+  m_d3dContext->IASetIndexBuffer(m_2dIndexBuffer.Get(),DXGI_FORMAT_R32_UINT,0);
+  m_d3dContext->VSSetConstantBuffers(0, 1, m_screenInfo.GetAddressOf());
+  m_d3dContext->VSSetConstantBuffers(1, 1, m_BodyInfoBuffer.GetAddressOf());
+  m_d3dContext->VSSetShader(m_2dVertexShader.Get(),nullptr,0);
+
+  m_d3dContext->PSSetShader(m_2dPixelShader.Get(),nullptr,0);
+  m_d3dContext->PSSetSamplers(0,0,nullptr);
+
+  m_d3dContext->RSSetState(m_2dRasterizerState.Get());
+
+  //m_d3dContext->PSSetSamplers(0, 1, m_samplerLinear.GetAddressOf());
+
+  // Box2Dオブジェクトの描画
+  b2Body* body = world.GetBodyList();
+  int32 body_count = world.GetBodyCount();
+
+  while(body)
+  {
+
+    b2Fixture* fix = body->GetFixtureList();
+    b2Transform transform = body->GetTransform();
+    
+    m_BodyInfo.position.x = transform.p.x - game.scroll_offset();
+    m_BodyInfo.position.y = transform.p.y;
+    m_BodyInfo.rotation.x = transform.q.c;
+    m_BodyInfo.rotation.y = transform.q.s;
+    m_BodyInfo.color = XMFLOAT4(1.0f,0.5f,1.0f,1.0f);
+
+      m_d3dContext->UpdateSubresource(m_BodyInfoBuffer.Get(),0,nullptr,&m_BodyInfo,0,0);
+
+    while(fix){
+      b2Shape* s = fix->GetShape();
+
+      switch(s->GetType())
+      {
+      case  b2Shape::e_polygon:
+        {
+          b2PolygonShape* sp = static_cast<b2PolygonShape*>(s);
+
+          const int32 vcount = sp->GetVertexCount();
+          const int32 triangleNum = vcount - 2;
+          int32 vert1 = 0;
+          int32 vert2 = 1;
+          int32 vert3 = 2;
+
+
+          // 頂点データのセット
+          for(int j = 0;j < vcount;++j)
+          {
+            const b2Vec2& v = sp->GetVertex(j);// + vb;
+            m_2dVertex[j].position = XMFLOAT3(v.x,v.y,0.5f);
+          }
+          // 頂点バッファを更新する
+          m_d3dContext->UpdateSubresource(m_2dVertexBuffer.Get(),0,nullptr,m_2dVertex.data(),0,0);
+
+          // インデックスデータセット
+          // 凸多角形を三角形に分割する
+          for(int j = 0;j < triangleNum;++j)
+          {
+            m_2dIndex[j * 3] = 0;
+            m_2dIndex[j * 3 + 1] = vert2;
+            m_2dIndex[j * 3 + 2] = vert3;
+            ++vert2;
+            ++vert3;
+          }
+          // インデックスバッファの更新
+          m_d3dContext->UpdateSubresource(m_2dIndexBuffer.Get(),0,nullptr,m_2dIndex.data(),0,0);
+
+          m_d3dContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+          m_d3dContext->DrawIndexed(triangleNum * 3,0,0);
+        }
+        break;
+      // 円の描画（64角形で近似）
+      case  b2Shape::e_circle:
+        {
+          const int vertices = 64;
+          b2CircleShape* circle = static_cast<b2CircleShape*>(s);
+          float32 radius = circle->m_radius;
+          float radDelta  = 2.0f * XM_PI * (float)1.0f / 64.0f ;
+          float rad = 0.0f;
+
+          for(int j = 0,end = vertices / 4;j < end;++j)
+          {
+            float s = XMScalarSin(rad) * radius;
+            float c = XMScalarCos(rad) * radius;
+            m_2dVertex[j].position = XMFLOAT3(c + circle->m_p.x,s + circle->m_p.y,0.5f);
+            m_2dVertex[31 - j].position = XMFLOAT3(-c + circle->m_p.x,s + circle->m_p.y,0.5f);
+            m_2dVertex[j + 32].position = XMFLOAT3(-c + circle->m_p.x,-s + circle->m_p.y,0.5f);
+            m_2dVertex[63 - j].position = XMFLOAT3(c  + circle->m_p.x,-s + circle->m_p.y,0.5f);
+            rad += radDelta;
+          }
+
+          // 頂点バッファを更新する
+          m_d3dContext->UpdateSubresource(m_2dVertexBuffer.Get(),0,nullptr,m_2dVertex.data(),0,0);
+
+          const int32 triangleNum = vertices - 2;
+          int32 vert1 = 0;
+          int32 vert2 = 1;
+          int32 vert3 = 2;
+          int index_base = 0;
+
+          // インデックスデータセット
+          for(int j = 0;j < triangleNum;++j)
+          {
+            m_2dIndex[index_base] = 0;
+            m_2dIndex[index_base + 1] = vert2;
+            m_2dIndex[index_base + 2] = vert3;
+            index_base += 3;
+            ++vert2;
+            ++vert3;
+          }
+          // インデックスバッファの更新
+          m_d3dContext->UpdateSubresource(m_2dIndexBuffer.Get(),0,nullptr,m_2dIndex.data(),0,0);
+
+          m_d3dContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+          m_d3dContext->DrawIndexed(triangleNum * 3,0,0);
+
+          //b2Vec2 axis = b2Mul(transform.q, b2Vec2(1.0f, 0.0f));
+          //m_d2dContext->FillEllipse(D2D1::Ellipse(D2D1::Point2F(center.x + screen.x,center.y + screen.y),radius,radius),circle_brush.Get());
+        }
+        break;
+      // エッジの描画
+      case b2Shape::e_edge:
+        {
+          b2EdgeShape* edge = static_cast<b2EdgeShape*>(s);
+
+          const b2Vec2& v1 = edge->m_vertex1;
+          const b2Vec2& v2 = edge->m_vertex2;
+ 
+          m_2dVertex[0].position = XMFLOAT3(v1.x,v1.y,0.5f);
+          m_2dVertex[1].position = XMFLOAT3(v2.x,v2.y,0.5f);
+          
+          // 頂点バッファを更新する
+          m_d3dContext->UpdateSubresource(m_2dVertexBuffer.Get(),0,nullptr,m_2dVertex.data(),0,0);
+          m_d3dContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+          m_d3dContext->Draw(2,0);
+        }
+        break;
+
+      case b2Shape::e_chain:
+        {
+          m_d3dContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
+          b2ChainShape* chain = static_cast<b2ChainShape*>(s);
+
+          int32 count = chain->m_count;
+          const b2Vec2* vertices = chain->m_vertices;
+          int32 i = 0;
+          while(true)
+          {
+            int end = min(count,MAX_2D_VERTICES);
+            int draw_count = 0;
+            while (draw_count < end)
+            {
+              m_2dVertex[draw_count].position = XMFLOAT3(vertices[i].x,vertices[i].y,0.5f);
+              ++i;
+              ++draw_count;
+            }
+            // 頂点バッファを更新する
+            m_d3dContext->UpdateSubresource(m_2dVertexBuffer.Get(),0,nullptr,m_2dVertex.data(),0,0);
+            m_d3dContext->Draw(draw_count,0);
+            count -= draw_count;
+            if(count <= 0) break;
+            ++count;
+            --i;
+            --i;
+          }
+        }
+        break;
+      }
+      fix = fix->GetNext();
+    }
+    body = body->GetNext();
+  }
 }
 
 void GameRenderer::WriteVideoFrame()
@@ -903,30 +1181,29 @@ void GameRenderer::WriteVideoFrame()
   {
     static int count = 0;
     if(!count){
-      ID3D11Texture2DPtr pSrcBuffer;
-      DX::ThrowIfFailed(m_swapChain->GetBuffer(0,IID_PPV_ARGS(&pSrcBuffer)));
-      m_d3dContext->CopyResource(m_VideoSrcTexure.Get(),pSrcBuffer.Get());
-      pSrcBuffer = nullptr;
-
-      m_d3dContext->IASetInputLayout(m_videoVertexLayout.Get());
+      {
+        ID3D11Texture2DPtr pSrcBuffer;
+        DX::ThrowIfFailed(m_swapChain->GetBuffer(0,IID_PPV_ARGS(&pSrcBuffer)));
+        m_d3dContext->CopyResource(m_videoSrcTexure.Get(),pSrcBuffer.Get());
+      }
       uint32 stride = sizeof(VertexVideo);
       uint32 offset = 0;
-      m_d3dContext->IASetVertexBuffers(0,1,m_VideoVertex.GetAddressOf(),&stride,&offset);
+      m_d3dContext->IASetVertexBuffers(0,1,m_videoVertex.GetAddressOf(),&stride,&offset);
+      m_d3dContext->IASetInputLayout(m_videoVertexLayout.Get());
       m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
       m_d3dContext->VSSetShader(m_videoVertexShader.Get(),nullptr,0);
       m_d3dContext->PSSetShader(m_videoPixelShader.Get(),nullptr,0);
-      m_d3dContext->RSSetState(m_VideoRasterState.Get());
       m_d3dContext->OMSetRenderTargets(1,m_videoRenderTargetView.GetAddressOf(),nullptr);
       m_d3dContext->PSSetSamplers(0,1,m_videoSamplerState.GetAddressOf());
       m_d3dContext->PSSetShaderResources(0,1,m_videoSrcView.GetAddressOf());
-      float color[4] = {0.0f,0.0f,0.0f,1.0f};
-      D3D11_VIEWPORT viewport  = {0,0,VIDEO_WIDTH,VIDEO_HEIGHT};
-      m_d3dContext->RSSetViewports(1,&viewport);
-      m_d3dContext->ClearRenderTargetView(m_videoRenderTargetView.Get(),color);
+      m_d3dContext->RSSetState(m_videoRasterState.Get());
+      m_d3dContext->RSSetViewports(1,&m_videoViewport);
+      m_d3dContext->ClearRenderTargetView(m_videoRenderTargetView.Get(),m_clearColor);
       m_d3dContext->Draw(4,0);
-      m_d3dContext->CopyResource(m_VideoStageTexture.Get(),m_VideoDestTexture.Get());
+      m_d3dContext->CopyResource(m_videoStageTexture.Get(),m_videoDestTexture.Get());
+      m_videoWriter->WriteTextureToBuffer(m_d3dContext,m_videoStageTexture);
     } else {
-      m_videoWriter->WriteTexture(m_d3dContext,m_VideoStageTexture);
+      m_videoWriter->WriteSink();
     }
     ++count;
     count = count & 1;

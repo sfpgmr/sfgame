@@ -27,7 +27,7 @@
 //             ContinueLevel - The player is ready to continue playing the current level.  Part of the
 //                 current level has already been played.
 //     Dynamics - the game is active play mode.
-//     Snapped - the game is currently in the snapped position on the screen.  It is not possible to
+//     Snapped - the game is currently in the snapped position on the m_screenInfo.  It is not possible to
 //         play the game in snapped mode.
 //     Suspended - the game was suspended by PLM.
 //     Deactivated - the game has lost focus.

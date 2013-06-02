@@ -218,6 +218,7 @@
     <ClInclude Include="MediaReader.h" />
     <ClInclude Include="MoveLookController.h" />
     <ClInclude Include="scroll_game.h" />
+    <ClInclude Include="sfhelper.h" />
     <ClInclude Include="sfmf.h" />
     <ClInclude Include="SoundEffect.h" />
     <ClInclude Include="StereoProjection.h" />

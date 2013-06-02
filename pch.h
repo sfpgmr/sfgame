@@ -24,9 +24,18 @@
 #include <xaudio2fx.h>
 
 #include <mmreg.h>
-#include <mfidl.h>
 #include <mfapi.h>
-#include <mfreadwrite.h>
+#include <mfidl.h>
+#include <evr.h>
+#include <Mfreadwrite.h>
+#include <mferror.h>
+#include <Mfsharingengine.h>
+#include <Wmcodecdsp.h>
+#include <Mfmediacapture.h>
+#include <Wmcontainer.h>
+#include <Mfcaptureengine.h>
+#include <Mfmp2dlna.h>
+
 //#include <dcomp.h>
 
 #include <wincodecsdk.h>
@@ -42,8 +51,6 @@
 #include <ppltasks.h>
 #include <agile.h>
 #include <Box2D.h>
+#include "sfhelper.h"
 
-#define _WRL_PTR_TYPEDEF(x) typedef Microsoft::WRL::ComPtr<x> x ## Ptr
-
-#define CHK(statement)	{HRESULT _hr = (statement); if (FAILED(_hr)) { throw ref new Platform::COMException(_hr); };}
 

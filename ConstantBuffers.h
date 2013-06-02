@@ -67,9 +67,22 @@ struct ConstantBufferChangesEveryPrim
     float specularPower;
 };
 
-struct Buffer2D 
+//////////////////////////////////////
+// Box2Dオブジェクト表示用
+//////////////////////////////////////
+
+struct BodyInfo 
 {
-	DirectX::XMFLOAT4X4 transform;
+	DirectX::XMFLOAT2 position;
+	DirectX::XMFLOAT2 rotation;
 	DirectX::XMFLOAT4 color;
+};
+
+struct ScreenInfo
+{
+  DirectX::XMFLOAT2 offset;
+  DirectX::XMFLOAT2 scale;
+  DirectX::XMFLOAT2 aspect;
+
 };
 

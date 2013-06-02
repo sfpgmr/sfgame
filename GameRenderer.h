@@ -47,6 +47,7 @@
 //     }, task_continuation_context::use_current());
 
 #include "DirectXBase.h"
+#include "ConstantBuffers.h"
 #include "GameHud.h"
 #include "gamemain.h"
 
@@ -59,6 +60,10 @@ namespace sf {
 ref class GameRenderer : public DirectXBase
 {
 internal:
+  
+  static const int32 MAX_2D_INDEX = 512;
+  static const int32 MAX_2D_VERTICES = 64;
+
   GameRenderer();
 
   virtual void Initialize(
@@ -87,52 +92,74 @@ internal:
 #endif
 
 protected private:
+
   bool                                                m_initialized;
   bool                                                m_gameResourcesLoaded;
   bool                                                m_levelResourcesLoaded;
+  bool                                                m_captureVideo;
   GameHud^                                            m_gameHud;
-  GameMain^											m_game;
-  float m_scale;
+  GameMain^											                      m_game;
+  float                                               m_d2dScale;
+  float                                               m_d3dScale;
 
   //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_sphereTexture;
   //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_cylinderTexture;
   //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_ceilingTexture[GameConstants::MaxBackgroundTextures];
   //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_floorTexture[GameConstants::MaxBackgroundTextures];
   //Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_wallsTexture[GameConstants::MaxBackgroundTextures];
+  CD3D11_VIEWPORT m_viewport;
 
   // Constant Buffers
   Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferNeverChanges;
   Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangeOnResize;
   Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangesEveryFrame;
   Microsoft::WRL::ComPtr<ID3D11Buffer>                m_constantBufferChangesEveryPrim;
-  Microsoft::WRL::ComPtr<ID3D11Buffer>                m_Buffer2D;
+
   Microsoft::WRL::ComPtr<ID3D11SamplerState>          m_samplerLinear;
   Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_vertexShader;
   Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_vertexShaderFlat;
-  Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_2dVertexShader;
   Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_pixelShader;
   Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_pixelShaderFlat;
-  Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_2dPixelShader;
   Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_vertexLayout;
-  Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_2dVertexLayout;
+
+  // Box2D描画用D3Dリソース
+
+  ID3D11BufferPtr         m_screenInfo;
+  BodyInfo                m_BodyInfo;
+  ID3D11BufferPtr         m_BodyInfoBuffer;
+  ID3D11VertexShaderPtr   m_2dVertexShader;
+  ID3D11PixelShaderPtr    m_2dPixelShader;
+  ID3D11InputLayoutPtr    m_2dVertexLayout;
+  std::array<Vertex2D,MAX_2D_VERTICES>   m_2dVertex;
+  ID3D11BufferPtr         m_2dVertexBuffer;
+  std::array<uint32, MAX_2D_INDEX>       m_2dIndex;
+  ID3D11BufferPtr         m_2dIndexBuffer;
+  ID3D11RasterizerState1Ptr  m_2dRasterizerState;
+
 
   // スクリーンキャプチャー用リソース
+
   sf::VideoWriter^ m_videoWriter;
   Windows::Storage::Streams::IRandomAccessStream^ m_videoStream;
-  ID3D11Texture2DPtr m_VideoSrcTexure;
+  ID3D11Texture2DPtr m_videoSrcTexure;
   ID3D11ShaderResourceViewPtr    m_videoSrcView;
   ID3D11RenderTargetViewPtr m_videoRenderTargetView;
-  ID3D11Texture2DPtr m_VideoDestTexture;
-  ID3D11Texture2DPtr m_VideoStageTexture;
+  ID3D11Texture2DPtr m_videoDestTexture;
+  ID3D11Texture2DPtr m_videoStageTexture;
   Microsoft::WRL::ComPtr<ID3D11VertexShader>          m_videoVertexShader;
   Microsoft::WRL::ComPtr<ID3D11PixelShader>           m_videoPixelShader;
   Microsoft::WRL::ComPtr<ID3D11InputLayout>           m_videoVertexLayout;
-  ID3D11BufferPtr                 m_VideoVertex;
-  ID3D11RasterizerState1Ptr  m_VideoRasterState;
+  ID3D11BufferPtr                 m_videoVertex;
+  ID3D11RasterizerState1Ptr  m_videoRasterState;
   ID3D11SamplerStatePtr m_videoSamplerState;
+  float m_clearColor[4];
+  CD3D11_VIEWPORT m_videoViewport; 
   std::unique_ptr<sf::AutoMF> m_mf;
+  bool m_drawd2d;
 
 private:
+  void RenderBox2DObjectsD2D();
+  void RenderBox2DObjectsD3D();
   void WriteVideoFrame();
 
 };

@@ -47,7 +47,7 @@ __forceinline bool _XMMatrixStereoProjectionHelper (
     // with the conservative setting is that the 3D effect will be less
     // impressive on smaller screens (which makes sense, since your eye
     // cannot be tricked as easily based on the smaller fov). to simulate
-    // the effect of a larger screen, use the liberal settings (debug only)
+    // the effect of a larger m_screenInfo, use the liberal settings (debug only)
 
     // Conservative Settings: * max acuity angle: 0.8f degrees * interoc distance: 1.25 inches
 

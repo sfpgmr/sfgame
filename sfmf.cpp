@@ -305,7 +305,7 @@ namespace sf {
       //AutoMF mf;
 
       //
-      // Create the Sink Writer
+      // Sink Writer の作成
       //
 
       ComPtr<IMFByteStream> spByteStream;
@@ -319,7 +319,7 @@ namespace sf {
       CHK(MFCreateSinkWriterFromURL(L".mp4", spByteStream.Get(), spAttr.Get(), &spSinkWriter));
 
       //   
-      // Setup the output media type   
+      // 出力メディアタイプのセットアップ   
       //   
 
       ComPtr<IMFMediaType> spTypeOut;  
@@ -336,7 +336,7 @@ namespace sf {
       CHK(spSinkWriter->AddStream(spTypeOut.Get(), &streamIndex));   
 
       //   
-      // Setup the input media type   
+      // 入力メディアタイプのセットアップ  
       //   
 
       ComPtr<IMFMediaType> spTypeIn;
@@ -351,7 +351,7 @@ namespace sf {
       CHK(spSinkWriter->SetInputMediaType(streamIndex, spTypeIn.Get(), nullptr));   
 
       //   
-      // Write some data   
+      //    
       //   
 
       CHK(spSinkWriter->BeginWriting());   
@@ -432,22 +432,25 @@ namespace sf {
         Windows::Storage::Streams::IRandomAccessStream^ stream
       )
   {
-    //AutoMF mf;
-    stream_ = stream;
-    CHK(MFCreateMFByteStreamOnStreamEx(reinterpret_cast<IUnknown *>(stream_), &byteStream_));
 
+
+    stream_ = stream;
+
+    // 入力ストリームから SinkWriterを生成する
+
+    CHK(MFCreateMFByteStreamOnStreamEx(reinterpret_cast<IUnknown *>(stream_), &byteStream_));
     CHK(MFCreateAttributes(&attr_, 10));
     CHK(attr_->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, true));
-
     CHK(MFCreateSinkWriterFromURL(L".mp4", byteStream_.Get(), attr_.Get(), &sinkWriter_));
 
     //   
-    // Setup the output media type   
+    // 出力メディアタイプのセットアップ   
     //   
 
     CHK(MFCreateMediaType(&mediaTypeOut_));   
     CHK(mediaTypeOut_->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video));     
     CHK(mediaTypeOut_->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_H264));   
+    //CHK(mediaTypeOut_->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32));   
     CHK(mediaTypeOut_->SetUINT32(MF_MT_AVG_BITRATE, BITRATE));   
     CHK(mediaTypeOut_->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive));   
     CHK(MFSetAttributeSize(mediaTypeOut_.Get(), MF_MT_FRAME_SIZE, WIDTH, HEIGHT));   
@@ -457,7 +460,7 @@ namespace sf {
     CHK(sinkWriter_->AddStream(mediaTypeOut_.Get(), &streamIndex_));   
 
     //   
-    // Setup the input media type   
+    // 出力メディアタイプのセットアップ  
     //   
 
     CHK(MFCreateMediaType(&mediaTypeIn_));   
@@ -471,12 +474,13 @@ namespace sf {
     CHK(sinkWriter_->SetInputMediaType(streamIndex_, mediaTypeIn_.Get(), nullptr));   
 
     //   
-    // Write some data   
+    // 出力開始  
     //   
 
     CHK(sinkWriter_->BeginWriting());   
+
     //   
-    // Create a media sample   
+    // メディア・サンプルの作成   
     //   
 
     CHK(MFCreateSample(&sample_));   
@@ -484,33 +488,47 @@ namespace sf {
     CHK(sample_->SetSampleDuration(hnsSampleDuration));   
 
     //   
-    // Add a media buffer filled with random data   
+    // メディア・バッファの生成と、メディア・サンプルへの追加    
     //   
 
     CHK(MFCreateMemoryBuffer(cbMaxLength, &buffer_));   
     CHK(buffer_->SetCurrentLength(cbMaxLength));   
     CHK(sample_->AddBuffer(buffer_.Get()));   
+
   }
 
-  void VideoWriter::WriteTexture(ID3D11DeviceContext1Ptr& context,ID3D11Texture2DPtr& texture)
+  // テクスチャをメディアバッファに書き込む
+  void VideoWriter::WriteTextureToBuffer(ID3D11DeviceContext1Ptr& context,ID3D11Texture2DPtr& texture)
   {
-    unsigned char *pbBuffer = nullptr;     
+
+    // タイムスタンプの設定
     CHK(sample_->SetSampleTime(sampleTime_));   
+    
+    // 書き込み先バッファのロック
+    unsigned char *pbBuffer = nullptr;     
     CHK(buffer_->Lock(&pbBuffer, nullptr, nullptr));
+    
+    // 読み込みテクスチャをマップ
     D3D11_MAPPED_SUBRESOURCE mapped;
     CHK(context->Map(texture.Get(),0,D3D11_MAP_READ,0,&mapped));
     
     MFCopyImage(pbBuffer,WIDTH * 4,reinterpret_cast<BYTE*>(mapped.pData),mapped.RowPitch,WIDTH * 4,HEIGHT);
 
+    // 書き込み先バッファのアンロック
     CHK(buffer_->Unlock());   
+    // テクスチャをアンマップ
     context->Unmap(texture.Get(),0);
+    sampleTime_ += hnsSampleDuration;   
+  }
+
+  void VideoWriter::WriteSink()
+  {
   
     //   
     // Write the media sample   
     //   
 
     CHK(sinkWriter_->WriteSample(streamIndex_, sample_.Get()));   
-    sampleTime_ += hnsSampleDuration;   
 
   }
 }

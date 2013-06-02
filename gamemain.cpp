@@ -6,6 +6,7 @@
 //// Copyright (c) Microsoft Corporation. All rights reserved
 
 #include "pch.h"
+#include "ConstantBuffers.h"
 #include "GameRenderer.h"
 #include "sfmf.h"
 #include "DirectXSample.h"

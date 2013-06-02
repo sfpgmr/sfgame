@@ -611,7 +611,7 @@ void DirectXBase::Present()
 
     // The first argument instructs DXGI to block until VSync, putting the application
     // to sleep until the next VSync. This ensures we don't waste any cycles rendering
-    // frames that will never be displayed to the screen.
+    // frames that will never be displayed to the m_screenInfo.
     HRESULT hr = m_swapChain->Present1(1, 0, &parameters);
 
     // If the device was removed either by a disconnect or a driver upgrade, we

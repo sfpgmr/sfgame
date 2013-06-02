@@ -102,8 +102,8 @@ scroll_game::~scroll_game()
 
 void scroll_game::screen_aabb(float width,float height,float scale)
 {
-  screen_aabb_.lowerBound.Set(-width / ( 2.0f * scale) ,-height / (2.0f * scale));
-  screen_aabb_.upperBound.Set(width / ( 2.0f * scale)  ,height / (2.0f * scale));
+  screen_aabb_.lowerBound.Set(-width / scale,-height / scale );
+  screen_aabb_.upperBound.Set(width / scale ,height  /scale);
   screen_actual_aabb_ = screen_aabb_;
   screen_actual_aabb_.lowerBound.x += scroll_offset_;
   screen_actual_aabb_.upperBound.x += scroll_offset_;
