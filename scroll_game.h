@@ -17,7 +17,7 @@ public:
     return screen_aabb_;
   }
   virtual const b2AABB& screen_actual_aabb() const {return screen_actual_aabb_;}
-  virtual geme_objs_t& game_objs() {return objs_;}
+  virtual game_objs_t& game_objs() {return objs_;}
 
 private:
   b2World world_;
@@ -32,7 +32,7 @@ private:
   ULONGLONG tick_;
   b2AABB screen_aabb_;
   b2AABB screen_actual_aabb_;
-  geme_objs_t objs_;
+  game_objs_t objs_;
 };
 
 }

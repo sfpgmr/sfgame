@@ -29,7 +29,7 @@ GameRenderer::GameRenderer() :
   m_d2dScale(5.0f),
   m_d3dScale(0.01f),
   m_videoViewport(0.0f,0.0f,(float)VIDEO_WIDTH,(float)VIDEO_HEIGHT),
-  m_captureVideo(true),
+  m_captureVideo(false),
   m_drawd2d(false)
 {
 

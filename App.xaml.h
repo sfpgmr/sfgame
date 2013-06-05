@@ -175,7 +175,7 @@ namespace GameMainXaml
         MainPage^                                           m_mainPage;
         MoveLookController^                                 m_controller;
         GameRenderer^                                       m_renderer;
-        GameMain^                                       m_game;
+        GameMain^                                           m_game;
 
         UpdateEngineState                                   m_updateState;
         UpdateEngineState                                   m_updateStateNext;

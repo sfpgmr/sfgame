@@ -119,7 +119,7 @@
         </Grid>
 
         <!-- Center of the outer Grid.  This is the Center 50% of the m_screenInfo -->
-        <Grid x:Name="GameInfoOverlay" Grid.Row="1" Grid.Column="1" Background="{StaticResource PageBackgroundBrush}" Visibility="Collapsed"
+        <Grid x:Name="GameInfoOverlay" Grid.Row="1" Grid.Column="1" Background="{StaticResource PageBackgroundBrush}"
           Tapped="OnGameInfoOverlayTapped">
             <Grid.RowDefinitions>
                 <RowDefinition Height="2*"/>
@@ -232,7 +232,7 @@
             </Grid>
 
             <!-- Body2: Level Start -->
-            <Grid x:Name="LevelStart" Grid.Row="1" Visibility="Visible">
+            <Grid x:Name="LevelStart" Grid.Row="1" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>

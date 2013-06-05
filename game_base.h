@@ -2,7 +2,7 @@
 
 namespace sf {
   class game_obj_base;
-  typedef std::array<std::unique_ptr<game_obj_base>,100> geme_objs_t;
+  typedef std::array<std::unique_ptr<game_obj_base>,100> game_objs_t;
 
   struct game_base {
     game_base(){};
@@ -13,7 +13,7 @@ namespace sf {
     virtual void screen_aabb(float width,float height,float scale) = 0;
     virtual const b2AABB& screen_aabb() const = 0;
     virtual const b2AABB& screen_actual_aabb() const = 0;
-    virtual geme_objs_t& game_objs() = 0;
+    virtual game_objs_t& game_objs() = 0;
 
   };
 }
