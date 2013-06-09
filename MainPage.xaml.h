@@ -7,10 +7,11 @@
 
 #pragma once
 
+#include "Common\LayoutAwarePage.h" // 生成されたヘッダーによって要求されます
 #include "MainPage.g.h"
 #include "ProductItem.h"
 
-namespace GameMainXaml
+namespace sfgame
 {
     ref class App;
 

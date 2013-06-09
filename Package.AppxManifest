@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
-  <Identity Name="Microsoft.SDKSamples.GameMainXaml.CPP" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" Version="1.0.0.0" />
+  <Identity Name="Microsoft.SDKSamples.sfgame.CPP" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" Version="1.0.0.0" />
   <Properties>
     <DisplayName>DirectX/XAML first-person game C++ sample</DisplayName>
     <PublisherDisplayName>Microsoft Corporation</PublisherDisplayName>
@@ -14,7 +14,7 @@
     <Resource Language="en-us" />
   </Resources>
   <Applications>
-    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="GameMainXaml.App">
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="sfgame.App">
       <VisualElements DisplayName="DirectX/XAML first-person game C++ sample" Logo="squareTile-sdk.png" SmallLogo="smallTile-sdk.png" Description="DirectX/XAML first-person game C++ sample" ForegroundText="light" BackgroundColor="#00b2f0">
         <DefaultTile ShowName="allLogos" ShortName="DX/XAML first-person game C++" />
         <SplashScreen Image="splash-sdk.png" BackgroundColor="#00b2f0" />

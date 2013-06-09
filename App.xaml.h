@@ -50,13 +50,14 @@
 #define USE_STORE_SIMULATOR 1
 
 #include "MainPage.xaml.h"
+#include "MenuPage.xaml.h"
 #include "gamemain.h"
 #ifdef USE_STORE_SIMULATOR
 #include "PersistentState.h"
 #endif
 #include "App.g.h"
 
-namespace GameMainXaml
+namespace sfgame
 {
     private enum class UpdateEngineState
     {

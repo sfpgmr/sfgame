@@ -8,7 +8,7 @@
 #include "pch.h"
 #include "ProductItem.h"
 
-using namespace GameMainXaml;
+using namespace sfgame;
 using namespace Platform;
 using namespace Windows::Foundation;
 using namespace Windows::UI::Xaml;

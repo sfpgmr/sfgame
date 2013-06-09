@@ -7,9 +7,11 @@
 
 #include "pch.h"
 #include "App.xaml.h"
+#include "Common\SuspensionManager.h"
+#include "MenuPage.xaml.h"
 
-using namespace GameMainXaml;
-
+using namespace sfgame;
+using namespace sfgame::Common;
 using namespace concurrency;
 using namespace DirectX;
 using namespace Windows::ApplicationModel;
@@ -24,6 +26,9 @@ using namespace Windows::UI::Input;
 using namespace Windows::UI::ViewManagement;
 using namespace Windows::UI::Xaml;
 using namespace Windows::UI::Xaml::Media;
+using namespace Windows::UI::Xaml::Controls;
+using namespace Windows::UI::Xaml::Navigation;
+
 
 
 //----------------------------------------------------------------------
@@ -42,7 +47,7 @@ App::App():
 #if defined(_DEBUG)
     UnhandledException += ref new UnhandledExceptionEventHandler([](Object^ /* sender */, UnhandledExceptionEventArgs^ args)
     {
-        Platform::String^ error = "GameMainXaml::App::UnhandledException: " + args->Message + "\n";
+        Platform::String^ error = "sfgame::App::UnhandledException: " + args->Message + "\n";
         OutputDebugStringW(error->Data());
     });
 #endif
@@ -57,8 +62,71 @@ App::~App()
 
 //----------------------------------------------------------------------
 
-void App::OnLaunched(_In_ LaunchActivatedEventArgs^ /* args */)
+void App::OnLaunched(_In_ LaunchActivatedEventArgs^  args )
 {
+	//auto rootFrame = dynamic_cast<Frame^>(Window::Current->Content);
+
+	//// ウィンドウに既にコンテンツが表示されている場合は、アプリケーションの初期化を繰り返さずに、
+	//// ウィンドウがアクティブであることだけを確認してください
+	//if (rootFrame == nullptr)
+	//{
+	//	// ナビゲーション コンテキストとして動作するフレームを作成し、
+	//	// SuspensionManager キーに関連付けます
+	//	rootFrame = ref new Frame();
+	//	SuspensionManager::RegisterFrame(rootFrame, "AppFrame");
+
+	//	auto prerequisite = task<void>([](){});
+	//	if (args->PreviousExecutionState == ApplicationExecutionState::Terminated)
+	//	{
+	//		// 必要な場合のみ、保存されたセッション状態を復元し、
+	//		// 復元完了後の最後の起動手順をスケジュールします
+	//		prerequisite = SuspensionManager::RestoreAsync();
+	//	}
+	//	prerequisite.then([=](task<void> prerequisite)
+	//	{
+	//		try
+	//		{
+	//			prerequisite.get();
+	//		}
+	//		catch (Platform::Exception^)
+	//		{
+	//			//状態の復元に何か問題があります。
+	//			//状態がないものとして続行します
+	//		}
+
+	//		if (rootFrame->Content == nullptr)
+	//		{
+	//			// ナビゲーション スタックが復元されていない場合、最初のページに移動します。
+	//			// このとき、必要な情報をナビゲーション パラメーターとして渡して、新しいページを
+	//			// を構成します
+	//			if (!rootFrame->Navigate(TypeName(MenuPage::typeid), "AllGroups"))
+	//			{
+	//				throw ref new FailureException("Failed to create initial page");
+	//			}
+	//		}
+	//		// フレームを現在のウィンドウに配置します
+	//		Window::Current->Content = rootFrame;
+	//		// 現在のウィンドウがアクティブであることを確認します
+	//		Window::Current->Activate();
+
+	//	}, task_continuation_context::use_current());
+	//}
+	//else
+	//{
+	//	if (rootFrame->Content == nullptr)
+	//	{
+	//		// ナビゲーション スタックが復元されていない場合、最初のページに移動します。
+	//		// このとき、必要な情報をナビゲーション パラメーターとして渡して、新しいページを
+	//		// 構成します
+	//		if (!rootFrame->Navigate(TypeName(GroupedItemsPage::typeid), "AllGroups"))
+	//		{
+	//			throw ref new FailureException("Failed to create initial page");
+	//		}
+	//	}
+	//	// 現在のウィンドウがアクティブであることを確認します
+	//	Window::Current->Activate();
+	//}
+
     Suspending += ref new SuspendingEventHandler(this, &App::OnSuspending);
     Resuming += ref new EventHandler<Object^>(this, &App::OnResuming);
 

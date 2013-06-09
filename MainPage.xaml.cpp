@@ -10,7 +10,7 @@
 #include "MainPage.xaml.h"
 #include "ProductItem.h"
 
-using namespace GameMainXaml;
+using namespace sfgame;
 
 using namespace Microsoft::WRL;
 using namespace Platform;

@@ -5,18 +5,27 @@
 
  Copyright (c) Microsoft Corporation. All rights reserved -->
 
-<Page
-    x:Class="GameMainXaml.MainPage"
+<common:LayoutAwarePage
+    x:Class="sfgame.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:sfgame"
+    xmlns:common="using:sfgame.Common"
     mc:Ignorable="d"
+    NavigationCacheMode="Enabled"
     d:DesignWidth="1366"
     d:DesignHeight="768">
 
     <SwapChainBackgroundPanel x:Name="DXSwapChainPanel">
         <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ApplicationViewStates">
+
+                <VisualState x:Name="Snapped"/>
+
+            </VisualStateGroup>
+
             <VisualStateGroup x:Name="GameInfoOverlayStates">
                 <VisualState x:Name="NormalState">
                     <Storyboard>
@@ -425,5 +434,5 @@
             </Grid>
         </AppBar>
     </Page.BottomAppBar>
-</Page>
+</common:LayoutAwarePage>
 

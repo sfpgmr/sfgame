@@ -53,4 +53,6 @@
 #include <Box2D.h>
 #include "sfhelper.h"
 
+#include "Common\LayoutAwarePage.h"
+#include "Common\RichTextColumns.h"
 
