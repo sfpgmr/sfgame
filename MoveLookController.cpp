@@ -745,7 +745,7 @@ void MoveLookController::Active(_In_ bool active)
     {
         m_state = MoveLookControllerState::Active;
         // Turn mouse cursor off (hidden).
-        CoreWindow::GetForCurrentThread()->PointerCursor = nullptr;
+        //CoreWindow::GetForCurrentThread()->PointerCursor = nullptr;
     }
     else
     {

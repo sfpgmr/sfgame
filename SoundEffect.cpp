@@ -31,7 +31,7 @@ void SoundEffect::Initialize(
     }
 
     // Create a source voice for this sound effect.
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         masteringEngine->CreateSourceVoice(
             &m_sourceVoice,
             sourceFormat
@@ -53,10 +53,10 @@ void SoundEffect::PlaySound(_In_ float volume)
     }
 
     // Interrupt sound effect if it is currently playing.
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_sourceVoice->Stop()
         );
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_sourceVoice->FlushSourceBuffers()
         );
 
@@ -65,13 +65,13 @@ void SoundEffect::PlaySound(_In_ float volume)
     buffer.pAudioData = m_soundData->Data;
     buffer.Flags = XAUDIO2_END_OF_STREAM;
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_sourceVoice->SetVolume(volume)
         );
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_sourceVoice->SubmitSourceBuffer(&buffer)
         );
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_sourceVoice->Start()
         );
 }

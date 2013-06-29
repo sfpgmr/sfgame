@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "RichTextColumns.h"
 
-using namespace sfgame::Common;
+using namespace sf::Common;
 
 using namespace Platform;
 using namespace Platform::Collections;

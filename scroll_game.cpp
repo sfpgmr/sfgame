@@ -3,8 +3,22 @@
 #include "game_obj.h"
 
 namespace sf {
-scroll_game::scroll_game() : world_(b2Vec2(0.0f,-40.0f))
+scroll_game::scroll_game()
 {
+
+  init();
+
+}
+
+void scroll_game::init()
+{
+  for(auto&i : objs_)
+  {
+    i.reset(nullptr);
+  }
+
+  world_.reset(new b2World(b2Vec2(0.0f,-40.0f)));
+
   {
     b2BodyDef bodydef;
 /*
@@ -38,7 +52,7 @@ scroll_game::scroll_game() : world_(b2Vec2(0.0f,-40.0f))
     edge.Set(b2Vec2(0.0f,0.0f),b2Vec2(40.0f,0.0f));
    // ground_box.SetAsBox(20.0f,2.0f);
     bodydef.position.Set(-70.0f,0.0f);
-    world_.CreateBody(&bodydef)->CreateFixture(&chain,1.0f);
+    world_->CreateBody(&bodydef)->CreateFixture(&chain,1.0f);
     scroll_offset_ = 0.0f;
   }
 
@@ -82,8 +96,8 @@ void scroll_game::step(float32 delta_time)
       }
     }
   }
-  world_.Step(delta_time,velocity_iterations_,position_iterations_);
-  world_.ClearForces();
+  world_->Step(delta_time,velocity_iterations_,position_iterations_);
+  world_->ClearForces();
   step_count++;
   tick_ = GetTickCount64();
   scroll_offset_ += 0.4f;
@@ -91,14 +105,16 @@ void scroll_game::step(float32 delta_time)
   screen_actual_aabb_.lowerBound.x += scroll_offset_;
   screen_actual_aabb_.upperBound.x += scroll_offset_;
 
-  world_.ClearForces();
+  world_->ClearForces();
 //  b2Vec2 pos = body_->GetPosition();
 //  float32 angle = body_->GetAngle();
 //  sf::debug_out(boost::wformat(L"posx:%4.2f posy:%4.2f angle:%4.2f\n") % pos.x % pos.y % angle); 
 }
 
 scroll_game::~scroll_game()
-{}
+{
+  world_.reset();
+}
 
 void scroll_game::screen_aabb(float width,float height,float scale)
 {

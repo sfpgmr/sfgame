@@ -9,7 +9,7 @@
 #include <collection.h>
 #include <algorithm>
 
-using namespace sfgame::Common;
+using namespace sf::Common;
 
 using namespace Concurrency;
 using namespace Platform;

@@ -50,13 +50,11 @@
 #include "ConstantBuffers.h"
 #include "GameHud.h"
 #include "gamemain.h"
-
+namespace sf {
 ref class GameMain;
 ref class GameHud;
-namespace sf { 
-  ref class VideoWriter;
-  class AutoMF;
-}
+ref class VideoWriter;
+class AutoMF;
 ref class GameRenderer : public DirectXBase
 {
 internal:
@@ -76,8 +74,10 @@ internal:
   virtual void CreateDeviceResources() override;
   virtual void UpdateForWindowSizeChange() override;
   virtual void Render() override;
+  virtual void ClearScreen();
   virtual void HandleDeviceLost() override;
-
+  void RenderPause();
+  void RenderGameOver();
   concurrency::task<void> CreateGameDeviceResourcesAsync(_In_ GameMain^ game);
   void FinalizeCreateGameDeviceResources();
   concurrency::task<void> LoadLevelResourcesAsync();
@@ -163,3 +163,4 @@ private:
   void WriteVideoFrame();
 
 };
+}

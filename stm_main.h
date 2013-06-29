@@ -1,36 +1,78 @@
 #pragma once
-#include <boost/msm/back/state_machine.hpp>
-#include <boost/msm/front/state_machine_def.hpp>
+//#include "singleton.h"
 
 namespace sf {
+  ref class GameMain;
   namespace stm {
-    namespace msmf = boost::msm::front;
-    namespace menu {
-      struct menu : msmf::state<> {};
-      struct game : msmf::state<> {};
 
+      // ゲーム中のイベント定義
       namespace ev {
-        struct game {};
+
+        
+        template <typename Tag>
+        struct EventBase 
+        {
+          EventBase(GameMain^ main) : main_(main) {};
+
+          template <typename SrcEvent>
+          EventBase(SrcEvent& src) : main_(src.getGameMain())
+          {
+
+          }
+
+          GameMain^ getGameMain() const {return main_;};
+        private:
+          GameMain^ main_;
+        };
+
+        struct AppLaunchedT {};
+        struct InitCompleteT {};
+        struct SelectEditT {};
+        struct SelectPlayT {};
+        struct StartGameT {};
+        struct CompleteT{};
+        struct PlayerIsGoneT{};
+        struct PlayerLeftZeroT{};
+        struct EscapeT {};
+        struct ShowAppMenuT {};
+        struct HideAppMenuT {};
+        struct ExitT {};
+        struct TimeOverT {};
+        struct UpdateT {};
+        struct ReturnMenuT {};
+        struct PlayContinueT {};
+
+        typedef EventBase<AppLaunchedT> AppLaunched;
+        typedef EventBase<InitCompleteT> InitComplete;
+        typedef EventBase<SelectEditT> SelectEdit;
+        typedef EventBase<SelectPlayT> SelectPlay;
+        typedef EventBase<StartGameT> StartGame;
+        typedef EventBase<CompleteT> Complete;
+        typedef EventBase<PlayerIsGoneT> PlayerIsGone;
+        typedef EventBase<PlayerLeftZeroT> PlayerLeftZero;
+        typedef EventBase<EscapeT> Escape;
+        typedef EventBase<ShowAppMenuT> ShowAppMenu;
+        typedef EventBase<HideAppMenuT> HideAppMenu;
+        typedef EventBase<ExitT> Exit;
+        typedef EventBase<TimeOverT> TimeOver;
+        typedef EventBase<UpdateT> Update;
+        typedef EventBase<ReturnMenuT> ReturnMenu;
+        typedef EventBase<PlayContinueT> PlayContinue;
+
       }
 
-      struct main_menu_ : msmf::state_machine_def<main_menu_>
+      struct game_stm 
       {
-      public:
-        main_menu_(){};
-        virtual ~main_menu_(){};
-        // 状態遷移テーブル
-        struct transition_table : boost::mpl::vector
-          //            現在状態      ,イベント           , 次の状態      , アクション               , ガード 
-          < _row       <game        ,ev::game          ,game          >
-          // a_row       <msmf::interrupt_state    ,ev::Close         ,Closed         ,&Player_::shutdown>
-          >
-        {};
-        typedef game initial_state;
-
+        game_stm();
+        ~game_stm();
+        template <typename Event>  inline void process_event(Event& ev);
+        void start();
+        void stop();
+        struct impl;
+      private:
+        std::unique_ptr<impl> impl_;
       };
-      typedef boost::msm::back::state_machine< main_menu_ > main_menu;
 
-    }
   }
 }
 

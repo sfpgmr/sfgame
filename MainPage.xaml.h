@@ -11,9 +11,9 @@
 #include "MainPage.g.h"
 #include "ProductItem.h"
 
-namespace sfgame
+namespace sf
 {
-    ref class App;
+    ref class GameMain;
 
     public enum class GameInfoOverlayCommand
     {
@@ -29,21 +29,11 @@ namespace sfgame
     public:
         MainPage();
 
-        void SetApp(App^ app);
-        void SetGameLoading();
-        void SetGameStats(int maxLevel, int hitCount, int shotCount);
-        void SetGameOver(bool win, int maxLevel, int hitCount, int shotCount, int highScore);
-        void SetLevelStart(int level, Platform::String^ objective, float timeLimit, float bonusTime);
-        void SetPause(int level, int hitCount, int shotCount, float timeRemaining);
-        void SetSnapped();
-        void HideSnapped();
-        void SetAction(GameInfoOverlayCommand action);
-        void HideGameInfoOverlay();
-        void ShowGameInfoOverlay();
         void LicenseChanged(
             Windows::ApplicationModel::Store::ListingInformation^ listing,
             Windows::ApplicationModel::Store::LicenseInformation^ license
             );
+
         void SetProductItems(
             Windows::ApplicationModel::Store::ListingInformation^ listing,
             Windows::ApplicationModel::Store::LicenseInformation^ license
@@ -51,6 +41,13 @@ namespace sfgame
         void OnWindowSizeChanged();
 
         Windows::UI::Xaml::Controls::SwapChainBackgroundPanel^ GetSwapChainBackgroundPanel() { return DXSwapChainPanel; };
+
+        property Windows::UI::Xaml::Controls::Frame^ MainFrame 
+        {
+          Windows::UI::Xaml::Controls::Frame^ get() {return m_MainFrame;}
+        }
+    internal:
+        void SetApp(GameMain^ app);
 
     protected:
         void OnPlayButtonClicked(Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ args);
@@ -66,11 +63,15 @@ namespace sfgame
 
         void OptionalTrialUpgrade();
         void ShowStoreFlyout();
-
     private:
-        App^ m_app;
+
+        GameMain^ m_gameMain;
         Windows::ApplicationModel::Store::LicenseInformation^ m_licenseInformation;
         Windows::ApplicationModel::Store::ListingInformation^ m_listingInformation;
         bool m_possiblePurchaseUpgrade;
+        void GameAppBar_Closed(Platform::Object^ sender, Platform::Object^ e);
+        void KillPlayer_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+        void ReturnMenu_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+        void m_PlayerKill_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
     };
 }

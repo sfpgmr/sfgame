@@ -7,7 +7,7 @@
 
 #pragma once
 
-namespace sfgame
+namespace sf
 {
     [Windows::UI::Xaml::Data::Bindable]
     [Windows::Foundation::Metadata::WebHostHidden]

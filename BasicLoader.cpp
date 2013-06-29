@@ -55,7 +55,7 @@ inline void BasicLoader::SetDebugName(
     if (nameStringLength == 0)
     {
         char defaultNameString[] = "BasicLoaderObject";
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             object->SetPrivateData(
                 WKPDID_D3DDebugObjectName,
                 sizeof(defaultNameString) - 1,
@@ -65,7 +65,7 @@ inline void BasicLoader::SetDebugName(
     }
     else
     {
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             object->SetPrivateData(
                 WKPDID_D3DDebugObjectName,
                 nameStringLength - 1,
@@ -137,7 +137,7 @@ void BasicLoader::CreateTexture(
                 );
         }
 
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             resource.As(&texture2D)
             );
     }
@@ -148,7 +148,7 @@ void BasicLoader::CreateTexture(
             // A WIC factory object is required in order to load texture
             // assets stored in non-DDS formats.  If BasicLoader was not
             // initialized with one, create one as needed.
-            DX::ThrowIfFailed(
+            ThrowIfFailed(
                 CoCreateInstance(
                     CLSID_WICImagingFactory,
                     nullptr,
@@ -159,11 +159,11 @@ void BasicLoader::CreateTexture(
         }
 
         ComPtr<IWICStream> stream;
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_wicFactory->CreateStream(&stream)
             );
 
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             stream->InitializeFromMemory(
                 data,
                 dataSize
@@ -171,7 +171,7 @@ void BasicLoader::CreateTexture(
             );
 
         ComPtr<IWICBitmapDecoder> bitmapDecoder;
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_wicFactory->CreateDecoderFromStream(
                 stream.Get(),
                 nullptr,
@@ -181,16 +181,16 @@ void BasicLoader::CreateTexture(
             );
 
         ComPtr<IWICBitmapFrameDecode> bitmapFrame;
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             bitmapDecoder->GetFrame(0, &bitmapFrame)
             );
 
         ComPtr<IWICFormatConverter> formatConverter;
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_wicFactory->CreateFormatConverter(&formatConverter)
             );
 
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             formatConverter->Initialize(
                 bitmapFrame.Get(),
                 GUID_WICPixelFormat32bppPBGRA,
@@ -203,12 +203,12 @@ void BasicLoader::CreateTexture(
 
         uint32 width;
         uint32 height;
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             bitmapFrame->GetSize(&width, &height)
             );
 
         std::unique_ptr<byte[]> bitmapPixels(new byte[width * height * 4]);
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             formatConverter->CopyPixels(
                 nullptr,
                 width * 4,
@@ -231,7 +231,7 @@ void BasicLoader::CreateTexture(
             1
             );
 
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreateTexture2D(
                 &textureDesc,
                 &initialData,
@@ -246,7 +246,7 @@ void BasicLoader::CreateTexture(
                 D3D11_SRV_DIMENSION_TEXTURE2D
                 );
 
-            DX::ThrowIfFailed(
+            ThrowIfFailed(
                 m_d3dDevice->CreateShaderResourceView(
                     texture2D.Get(),
                     &shaderResourceViewDesc,
@@ -286,7 +286,7 @@ void BasicLoader::CreateInputLayout(
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
 
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreateInputLayout(
                 basicVertexLayoutDesc,
                 ARRAYSIZE(basicVertexLayoutDesc),
@@ -298,7 +298,7 @@ void BasicLoader::CreateInputLayout(
     }
     else
     {
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreateInputLayout(
                 layoutDesc,
                 layoutDescNumElements,
@@ -338,7 +338,7 @@ void BasicLoader::CreateMesh(
     vertexBufferData.SysMemPitch = 0;
     vertexBufferData.SysMemSlicePitch = 0;
     CD3D11_BUFFER_DESC vertexBufferDesc(numVertices * sizeof(BasicVertex), D3D11_BIND_VERTEX_BUFFER);
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateBuffer(
             &vertexBufferDesc,
             &vertexBufferData,
@@ -351,7 +351,7 @@ void BasicLoader::CreateMesh(
     indexBufferData.SysMemPitch = 0;
     indexBufferData.SysMemSlicePitch = 0;
     CD3D11_BUFFER_DESC indexBufferDesc(numIndices * sizeof(uint16), D3D11_BIND_INDEX_BUFFER);
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateBuffer(
             &indexBufferDesc,
             &indexBufferData,
@@ -419,7 +419,7 @@ void BasicLoader::LoadShader(
 {
     Platform::Array<byte>^ bytecode = m_basicReaderWriter->ReadData(filename);
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateVertexShader(
             bytecode->Data,
             bytecode->Length,
@@ -483,7 +483,8 @@ task<void> BasicLoader::LoadShaderAsync(
 
     return m_basicReaderWriter->ReadDataAsync(filename).then([=](const Platform::Array<byte>^ bytecode)
     {
-        DX::ThrowIfFailed(
+        DOUT(boost::wformat(L"Loading Shader FileName %s") % filename->Data());
+        ThrowIfFailed(
             m_d3dDevice->CreateVertexShader(
                 bytecode->Data,
                 bytecode->Length,
@@ -529,7 +530,7 @@ void BasicLoader::LoadShader(
 {
     Platform::Array<byte>^ bytecode = m_basicReaderWriter->ReadData(filename);
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreatePixelShader(
             bytecode->Data,
             bytecode->Length,
@@ -548,7 +549,7 @@ task<void> BasicLoader::LoadShaderAsync(
 {
     return m_basicReaderWriter->ReadDataAsync(filename).then([=](const Platform::Array<byte>^ bytecode)
     {
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreatePixelShader(
                 bytecode->Data,
                 bytecode->Length,
@@ -568,7 +569,7 @@ void BasicLoader::LoadShader(
 {
     Platform::Array<byte>^ bytecode = m_basicReaderWriter->ReadData(filename);
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateComputeShader(
             bytecode->Data,
             bytecode->Length,
@@ -587,7 +588,7 @@ task<void> BasicLoader::LoadShaderAsync(
 {
     return m_basicReaderWriter->ReadDataAsync(filename).then([=](const Platform::Array<byte>^ bytecode)
     {
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreateComputeShader(
                 bytecode->Data,
                 bytecode->Length,
@@ -607,7 +608,7 @@ void BasicLoader::LoadShader(
 {
     Platform::Array<byte>^ bytecode = m_basicReaderWriter->ReadData(filename);
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateGeometryShader(
             bytecode->Data,
             bytecode->Length,
@@ -626,7 +627,7 @@ task<void> BasicLoader::LoadShaderAsync(
 {
     return m_basicReaderWriter->ReadDataAsync(filename).then([=](const Platform::Array<byte>^ bytecode)
     {
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreateGeometryShader(
                 bytecode->Data,
                 bytecode->Length,
@@ -651,7 +652,7 @@ void BasicLoader::LoadShader(
 {
     Platform::Array<byte>^ bytecode = m_basicReaderWriter->ReadData(filename);
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateGeometryShaderWithStreamOutput(
             bytecode->Data,
             bytecode->Length,
@@ -735,7 +736,7 @@ task<void> BasicLoader::LoadShaderAsync(
             }
         }
 
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreateGeometryShaderWithStreamOutput(
                 bytecode->Data,
                 bytecode->Length,
@@ -760,7 +761,7 @@ void BasicLoader::LoadShader(
 {
     Platform::Array<byte>^ bytecode = m_basicReaderWriter->ReadData(filename);
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateHullShader(
             bytecode->Data,
             bytecode->Length,
@@ -779,7 +780,7 @@ task<void> BasicLoader::LoadShaderAsync(
 {
     return m_basicReaderWriter->ReadDataAsync(filename).then([=](const Platform::Array<byte>^ bytecode)
     {
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreateHullShader(
                 bytecode->Data,
                 bytecode->Length,
@@ -799,7 +800,7 @@ void BasicLoader::LoadShader(
 {
     Platform::Array<byte>^ bytecode = m_basicReaderWriter->ReadData(filename);
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateDomainShader(
             bytecode->Data,
             bytecode->Length,
@@ -818,7 +819,7 @@ task<void> BasicLoader::LoadShaderAsync(
 {
     return m_basicReaderWriter->ReadDataAsync(filename).then([=](const Platform::Array<byte>^ bytecode)
     {
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreateDomainShader(
                 bytecode->Data,
                 bytecode->Length,

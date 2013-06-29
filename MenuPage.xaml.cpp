@@ -6,7 +6,7 @@
 #include "pch.h"
 #include "MenuPage.xaml.h"
 
-using namespace sfgame;
+using namespace sf;
 
 using namespace Platform;
 using namespace Platform::Collections;
@@ -40,8 +40,19 @@ MenuPage::MenuPage()
 /// ディクショナリ。ページに初めてアクセスするとき、状態は null になります。</param>
 void MenuPage::LoadState(Object^ navigationParameter, IMap<String^, Object^>^ pageState)
 {
-	(void) navigationParameter;	// 未使用のパラメーター
-	(void) pageState;	// 未使用のパラメーター
-
+  (void) pageState;	// 未使用のパラメーター
+//  m_gameMain = dynamic_cast<App^>(navigationParameter);
+ // assert(m_gameMain != nullptr);
+	// TODO: 問題のドメインでサンプル データを置き換えるのに適したデータ モデルを作成します
+	auto sampleDataGroups = Data::MainMenuDataSource::GetGroups("AllGroups");
+	DefaultViewModel->Insert("Groups", sampleDataGroups);
 	// TODO: バインド可能なアイテムのコレクションを、DefaultViewModel->("Items", <value>) を使って設定します
+}
+
+
+void MenuPage::itemGridView_ItemClick(Platform::Object^ sender, Windows::UI::Xaml::Controls::ItemClickEventArgs^ e)
+{
+
+  Data::MainMenuDataItem^ item = dynamic_cast<Data::MainMenuDataItem^>(e->ClickedItem);
+  item->Clicked();
 }

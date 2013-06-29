@@ -19,6 +19,7 @@ using namespace DirectX;
 using namespace Microsoft::WRL;
 using namespace Windows::UI::Core;
 using namespace Windows::UI::Xaml::Controls;
+using namespace sf;
 
 //----------------------------------------------------------------------
 
@@ -48,11 +49,7 @@ void GameRenderer::Initialize(
   float dpi
   )
 {
-  m_gameHud = ref new GameHud(
-    L"Windows 8 サンプル",
-    L"DirectX/XAML とBox2D でゲームを作ってみる。",
-    L"License state unknown"
-    );
+  m_gameHud = ref new GameHud();
 
   DirectXBase::Initialize(window, swapChainPanel, dpi);
 }
@@ -147,32 +144,32 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
   bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
   bd.CPUAccessFlags = 0;
   bd.ByteWidth = (sizeof(ConstantBufferNeverChanges) + 15) / 16 * 16;
-  DX::ThrowIfFailed(
+  ThrowIfFailed(
     m_d3dDevice->CreateBuffer(&bd, nullptr, &m_constantBufferNeverChanges)
     );
 
   bd.ByteWidth = (sizeof(ConstantBufferChangeOnResize) + 15) / 16 * 16;
-  DX::ThrowIfFailed(
+  ThrowIfFailed(
     m_d3dDevice->CreateBuffer(&bd, nullptr, &m_constantBufferChangeOnResize)
     );
 
   bd.ByteWidth = (sizeof(ConstantBufferChangesEveryFrame) + 15) / 16 * 16;
-  DX::ThrowIfFailed(
+  ThrowIfFailed(
     m_d3dDevice->CreateBuffer(&bd, nullptr, &m_constantBufferChangesEveryFrame)
     );
 
   bd.ByteWidth = (sizeof(ConstantBufferChangesEveryPrim) + 15) / 16 * 16;
-  DX::ThrowIfFailed(
+  ThrowIfFailed(
     m_d3dDevice->CreateBuffer(&bd, nullptr, &m_constantBufferChangesEveryPrim)
     );
 
   bd.ByteWidth = (sizeof(ScreenInfo) + 15) / 16 * 16;
-  DX::ThrowIfFailed(
+  ThrowIfFailed(
     m_d3dDevice->CreateBuffer(&bd, nullptr, &m_screenInfo)
     );
 
   bd.ByteWidth = (sizeof(BodyInfo) + 15) / 16 * 16;
-  DX::ThrowIfFailed(
+  ThrowIfFailed(
     m_d3dDevice->CreateBuffer(&bd, nullptr, &m_BodyInfoBuffer)
     );
 
@@ -186,7 +183,7 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
   sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
   sampDesc.MinLOD = 0;
   sampDesc.MaxLOD = FLT_MAX;
-  DX::ThrowIfFailed(
+  ThrowIfFailed(
     m_d3dDevice->CreateSamplerState(&sampDesc, &m_samplerLinear)
     );
 
@@ -270,7 +267,7 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
 
       // スワップチェインのバッファを取得する
       ID3D11Texture2DPtr buffer;
-      DX::ThrowIfFailed(m_swapChain->GetBuffer(0,IID_PPV_ARGS(&buffer)));
+      ThrowIfFailed(m_swapChain->GetBuffer(0,IID_PPV_ARGS(&buffer)));
       D3D11_TEXTURE2D_DESC desc;
       buffer->GetDesc(&desc);
 
@@ -280,20 +277,20 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
       desc.CPUAccessFlags = 0;
       desc.Usage = D3D11_USAGE_DEFAULT;
 
-      DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,nullptr,&m_videoSrcTexure));
+      ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,nullptr,&m_videoSrcTexure));
       // 複製テクスチャー用のSRV
       CD3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc(
         m_videoSrcTexure.Get(),
         D3D11_SRV_DIMENSION_TEXTURE2D
         );
-      DX::ThrowIfFailed(m_d3dDevice->CreateShaderResourceView(m_videoSrcTexure.Get(),&shaderResourceViewDesc,&m_videoSrcView));
+      ThrowIfFailed(m_d3dDevice->CreateShaderResourceView(m_videoSrcTexure.Get(),&shaderResourceViewDesc,&m_videoSrcView));
 
       // ビデオサイズに縮小した画像を格納するためのテクスチャーを作成
       desc.Width = VIDEO_WIDTH;
       desc.Height = VIDEO_HEIGHT;
       desc.BindFlags = D3D11_BIND_RENDER_TARGET;
 
-      DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,0,&m_videoDestTexture));
+      ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,0,&m_videoDestTexture));
 
       // RTVの作成
       CD3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc(m_videoDestTexture.Get(),
@@ -304,7 +301,7 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
         1
         );
 
-      DX::ThrowIfFailed(
+      ThrowIfFailed(
         m_d3dDevice->CreateRenderTargetView(
         m_videoDestTexture.Get(),
         &renderTargetViewDesc,
@@ -336,7 +333,7 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
       sampDesc.MaxAnisotropy = 1;
       sampDesc.MinLOD = 0;
       sampDesc.MaxLOD = FLT_MAX;
-      DX::ThrowIfFailed(
+      ThrowIfFailed(
         m_d3dDevice->CreateSamplerState(&sampDesc, &m_videoSamplerState));
 
       m_d3dDevice->CreateRasterizerState1(&RasterizerDesc,&m_videoRasterState);
@@ -347,7 +344,7 @@ task<void> GameRenderer::CreateGameDeviceResourcesAsync(_In_ GameMain^ game)
       desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
       desc.Usage = D3D11_USAGE_STAGING;
 
-      DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,0,&m_videoStageTexture));
+      ThrowIfFailed(m_d3dDevice->CreateTexture2D(&desc,0,&m_videoStageTexture));
 
       Windows::Storage::StorageFile^ st = create_task(Windows::Storage::KnownFolders::VideosLibrary->CreateFileAsync(L"output.m4v",Windows::Storage::CreationCollisionOption::ReplaceExisting)).get();
 
@@ -593,7 +590,7 @@ void GameRenderer::FinalizeCreateGameDeviceResources()
   SubResourceData.SysMemPitch = 0;
   SubResourceData.SysMemSlicePitch = 0;
 
-  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc, &SubResourceData, &m_videoVertex));
+  ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc, &SubResourceData, &m_videoVertex));
 
   //頂点バッファ作成
 
@@ -611,7 +608,7 @@ void GameRenderer::FinalizeCreateGameDeviceResources()
 
   SubResourceData.pSysMem = m_2dVertex.data();
 
-  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc, &SubResourceData, &m_2dVertexBuffer));
+  ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc, &SubResourceData, &m_2dVertexBuffer));
 
   // インデックスバッファ作成
   for(int i = 0;i < MAX_2D_INDEX;++i)
@@ -628,7 +625,7 @@ void GameRenderer::FinalizeCreateGameDeviceResources()
 
   SubResourceData.pSysMem = m_2dIndex.data();
 
-  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc,&SubResourceData,&m_2dIndexBuffer));
+  ThrowIfFailed(m_d3dDevice->CreateBuffer(&BufferDesc,&SubResourceData,&m_2dIndexBuffer));
 
   m_gameResourcesLoaded = true;
 }
@@ -696,6 +693,7 @@ void GameRenderer::SetBackground(uint32 background)
 void GameRenderer::Render()
 {
   int renderingPasses = 1;
+
   if (m_stereoEnabled)
   {
     renderingPasses = 2;
@@ -834,7 +832,7 @@ void GameRenderer::Render()
     HRESULT hr = m_d2dContext->EndDraw();
     if (hr != D2DERR_RECREATE_TARGET)
     {
-      DX::ThrowIfFailed(hr);
+      ThrowIfFailed(hr);
     }
 
     // Video Frameの書き込み
@@ -842,7 +840,7 @@ void GameRenderer::Render()
     //if(m_texture[0] && m_texture[1]){
     //static int index = 0;
     //ID3D11Texture2DPtr pSrcBuffer;
-    //DX::ThrowIfFailed(m_swapChain->GetBuffer(0,IID_PPV_ARGS(&pSrcBuffer)));
+    //ThrowIfFailed(m_swapChain->GetBuffer(0,IID_PPV_ARGS(&pSrcBuffer)));
     //m_d3dContext->CopyResource(m_texture[index].Get(),pSrcBuffer.Get());
     //m_d2dContext->SetTarget(m_videoTarget.Get());
     ////m_d2dContext->SetTarget(m_d2dTargetBitmapRight.Get());
@@ -860,6 +858,35 @@ void GameRenderer::Render()
   }
 }
 
+void GameRenderer::ClearScreen()
+{
+  int renderingPasses = 1;
+
+  if (m_stereoEnabled)
+  {
+    renderingPasses = 2;
+  }
+ for (int i = 0; i < renderingPasses; i++)
+  {
+    // Iterate through the number of rendering passes to be completed.
+    if (m_stereoEnabled && i > 0)
+    {
+      // Doing the Right Eye View.
+
+      m_d3dContext->RSSetViewports(1,&m_viewport);
+      m_d3dContext->OMSetRenderTargets(1, m_d3dRenderTargetViewRight.GetAddressOf(), m_d3dDepthStencilView.Get());
+      m_d3dContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+    }
+    else
+    {
+      // Doing the Mono or Left Eye View.
+      m_d3dContext->RSSetViewports(1,&m_viewport);
+      m_d3dContext->OMSetRenderTargets(1, m_d3dRenderTargetView.GetAddressOf(), m_d3dDepthStencilView.Get());
+      m_d3dContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+    }
+ }
+   Present();
+}
 void GameRenderer::RenderBox2DObjectsD2D()
 {
 
@@ -1175,6 +1202,153 @@ void GameRenderer::RenderBox2DObjectsD3D()
   }
 }
 
+void GameRenderer::RenderPause()
+{
+  int renderingPasses = 1;
+
+  if (m_stereoEnabled)
+  {
+    renderingPasses = 2;
+  }
+
+  for (int i = 0; i < renderingPasses; i++)
+  {
+    // Iterate through the number of rendering passes to be completed.
+    if (m_stereoEnabled && i > 0)
+    {
+      // Doing the Right Eye View.
+
+      m_d3dContext->RSSetViewports(1,&m_viewport);
+      m_d3dContext->OMSetRenderTargets(1, m_d3dRenderTargetViewRight.GetAddressOf(), m_d3dDepthStencilView.Get());
+      m_d3dContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+      m_d2dContext->SetTarget(m_d2dTargetBitmapRight.Get());
+    }
+    else
+    {
+      // Doing the Mono or Left Eye View.
+      m_d3dContext->RSSetViewports(1,&m_viewport);
+      m_d3dContext->OMSetRenderTargets(1, m_d3dRenderTargetView.GetAddressOf(), m_d3dDepthStencilView.Get());
+      m_d3dContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+      m_d2dContext->SetTarget(m_d2dTargetBitmap.Get());
+    }
+
+    {
+      const float ClearColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
+
+      // Only need to clear the background when not rendering the full 3D scene since
+      // the 3D world is a fully enclosed box and the dynamics prevents the camera from
+      // moving outside this space.
+      if (m_stereoEnabled && i > 0)
+      {
+        // Doing the Right Eye View.
+        m_d3dContext->ClearRenderTargetView(m_d3dRenderTargetViewRight.Get(), ClearColor);
+      }
+      else
+      {
+        // Doing the Mono or Left Eye View.
+        m_d3dContext->ClearRenderTargetView(m_d3dRenderTargetView.Get(), ClearColor);
+      }
+    }
+
+    m_d2dContext->BeginDraw();
+
+    // To handle the swapchain being pre-rotated, set the D2D transformation to include it.
+    m_d2dContext->SetTransform(m_rotationTransform2D);
+
+    if (m_game != nullptr && m_gameResourcesLoaded)
+    {
+      m_gameHud->RenderPause(m_game,m_d2dContext.Get(),m_windowBounds);
+    }
+
+    HRESULT hr = m_d2dContext->EndDraw();
+    if (hr != D2DERR_RECREATE_TARGET)
+    {
+      ThrowIfFailed(hr);
+    }
+
+  }
+
+  Present();
+  if(m_captureVideo){
+    WriteVideoFrame();
+  }
+
+}
+
+void GameRenderer::RenderGameOver()
+{
+  int renderingPasses = 1;
+
+  if (m_stereoEnabled)
+  {
+    renderingPasses = 2;
+  }
+
+  for (int i = 0; i < renderingPasses; i++)
+  {
+    // Iterate through the number of rendering passes to be completed.
+    if (m_stereoEnabled && i > 0)
+    {
+      // Doing the Right Eye View.
+
+      m_d3dContext->RSSetViewports(1,&m_viewport);
+      m_d3dContext->OMSetRenderTargets(1, m_d3dRenderTargetViewRight.GetAddressOf(), m_d3dDepthStencilView.Get());
+      m_d3dContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+      m_d2dContext->SetTarget(m_d2dTargetBitmapRight.Get());
+    }
+    else
+    {
+      // Doing the Mono or Left Eye View.
+      m_d3dContext->RSSetViewports(1,&m_viewport);
+      m_d3dContext->OMSetRenderTargets(1, m_d3dRenderTargetView.GetAddressOf(), m_d3dDepthStencilView.Get());
+      m_d3dContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+      m_d2dContext->SetTarget(m_d2dTargetBitmap.Get());
+    }
+
+    {
+      const float ClearColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
+
+      // Only need to clear the background when not rendering the full 3D scene since
+      // the 3D world is a fully enclosed box and the dynamics prevents the camera from
+      // moving outside this space.
+      if (m_stereoEnabled && i > 0)
+      {
+        // Doing the Right Eye View.
+        m_d3dContext->ClearRenderTargetView(m_d3dRenderTargetViewRight.Get(), ClearColor);
+      }
+      else
+      {
+        // Doing the Mono or Left Eye View.
+        m_d3dContext->ClearRenderTargetView(m_d3dRenderTargetView.Get(), ClearColor);
+      }
+    }
+
+    m_d2dContext->BeginDraw();
+
+    // To handle the swapchain being pre-rotated, set the D2D transformation to include it.
+    m_d2dContext->SetTransform(m_rotationTransform2D);
+
+    if (m_game != nullptr && m_gameResourcesLoaded)
+    {
+      m_gameHud->DrawGameOver(m_game,m_d2dContext.Get(),m_windowBounds);
+    }
+
+    HRESULT hr = m_d2dContext->EndDraw();
+    if (hr != D2DERR_RECREATE_TARGET)
+    {
+      ThrowIfFailed(hr);
+    }
+
+  }
+
+  Present();
+  if(m_captureVideo){
+    WriteVideoFrame();
+  }
+
+}
+
+
 void GameRenderer::WriteVideoFrame()
 {
   if(m_videoWriter && m_gameResourcesLoaded)
@@ -1183,7 +1357,7 @@ void GameRenderer::WriteVideoFrame()
     if(!count){
       {
         ID3D11Texture2DPtr pSrcBuffer;
-        DX::ThrowIfFailed(m_swapChain->GetBuffer(0,IID_PPV_ARGS(&pSrcBuffer)));
+        ThrowIfFailed(m_swapChain->GetBuffer(0,IID_PPV_ARGS(&pSrcBuffer)));
         m_d3dContext->CopyResource(m_videoSrcTexure.Get(),pSrcBuffer.Get());
       }
       uint32 stride = sizeof(VertexVideo);
@@ -1232,7 +1406,7 @@ void GameRenderer::ReportLiveDeviceObjects()
   {
     return;
   }
-  DX::ThrowIfFailed(
+  ThrowIfFailed(
     debugLayer->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL)
     );
 }

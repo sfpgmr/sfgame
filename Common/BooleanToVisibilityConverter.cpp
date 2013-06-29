@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "BooleanToVisibilityConverter.h"
 
-using namespace sfgame::Common;
+using namespace sf::Common;
 
 using namespace Platform;
 using namespace Windows::Foundation;

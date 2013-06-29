@@ -1,7 +1,7 @@
 #pragma once
 #include "game_base.h"
 namespace sf {
-class game_obj_base
+struct game_obj_base
 {
 public:
   game_obj_base(game_base& game) : game_base_(game),used_(false){};

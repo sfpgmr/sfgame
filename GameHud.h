@@ -15,17 +15,11 @@
 
 #include "gamemain.h"
 #include "DirectXSample.h"
-
-ref class GameMain;
-
+namespace sf {
 ref class GameHud
 {
 internal:
-    GameHud(
-        _In_ Platform::String^ titleHeader,
-        _In_ Platform::String^ titleBody,
-        _In_ Platform::String^ titleLicenseInfo
-        );
+    GameHud();
 
     void CreateDeviceIndependentResources(
         _In_ IDWriteFactory* dwriteFactory,
@@ -40,6 +34,55 @@ internal:
         _In_ Windows::Foundation::Rect windowBounds
         );
 
+    void RenderPause(
+      _In_ GameMain^ game,
+      _In_ ID2D1DeviceContext* d2dContext,
+      _In_ Windows::Foundation::Rect windowBounds
+    );
+
+
+    void DrawScore(
+      _In_ GameMain^ game,
+      _In_ ID2D1DeviceContext* d2dContext,
+      _In_ Windows::Foundation::Rect windowBounds
+      );
+
+    void DrawHighScore(
+      _In_ GameMain^ game,
+      _In_ ID2D1DeviceContext* d2dContext,
+      _In_ Windows::Foundation::Rect windowBounds
+      );
+
+    void DrawTitle(
+      _In_ GameMain^ game,
+      _In_ ID2D1DeviceContext* d2dContext,
+      _In_ Windows::Foundation::Rect windowBounds
+    );
+
+    void DrawHighScores(
+      _In_ GameMain^ game,
+      _In_ ID2D1DeviceContext* d2dContext,
+      _In_ Windows::Foundation::Rect windowBounds
+    );
+
+    void DrawPlayerLeft(
+      _In_ GameMain^ game,
+      _In_ ID2D1DeviceContext* d2dContext,
+      _In_ Windows::Foundation::Rect windowBounds
+    );
+
+    void DrawGameStart(
+      _In_ GameMain^ game,
+      _In_ ID2D1DeviceContext* d2dContext,
+      _In_ Windows::Foundation::Rect windowBounds
+    );
+
+    void DrawGameOver(
+      _In_ GameMain^ game,
+      _In_ ID2D1DeviceContext* d2dContext,
+      _In_ Windows::Foundation::Rect windowBounds
+    );
+
     void SetLicenseInfo(_In_ Platform::String^ licenseInfo);
 
 private:
@@ -48,24 +91,25 @@ private:
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>        m_textBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>        m_textBrushGrey;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>           m_textFormatBody;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>           m_textFormatBodySymbol;
 
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>           m_textFormatTitleHeader;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>           m_textFormatTitleBody;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>           m_textFormatBody;
+    //Microsoft::WRL::ComPtr<IDWriteTextFormat>           m_textFormatBodySymbol;
+    //Microsoft::WRL::ComPtr<IDWriteTextFormat>           m_textFormatTitleHeader;
+    //Microsoft::WRL::ComPtr<IDWriteTextFormat>           m_textFormatTitleBody;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>           m_textFormatTitleLicense;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap>                 m_logoBitmap;
-    Microsoft::WRL::ComPtr<IDWriteTextLayout>           m_titleHeaderLayout;
-    Microsoft::WRL::ComPtr<IDWriteTextLayout>           m_titleBodyLayout;
+
+  /*  Microsoft::WRL::ComPtr<IDWriteTextLayout>           m_titleHeaderLayout;
+    Microsoft::WRL::ComPtr<IDWriteTextLayout>           m_titleBodyLayout;*/
     Microsoft::WRL::ComPtr<IDWriteTextLayout>           m_titleLicenseInfoLayout;
 
-    bool                                                m_showTitle;
-    Platform::String^                                   m_titleHeader;
-    Platform::String^                                   m_titleBody;
-    Platform::String^                                   m_titleLicenseInfo;
+    Platform::String^   m_ScoreHeader;
+    Platform::String^   m_HighScoreHeader;
+    Platform::String^   m_PauseGameString;
+    Platform::String^   m_titleLicenseInfo;
 
     float                                               m_titleBodyVerticalOffset;
     float                                               m_titleLicenseVerticalOffset;
-    D2D1_SIZE_F                                         m_logoSize;
+    //D2D1_SIZE_F                                         m_logoSize;
     D2D1_SIZE_F                                         m_maxTitleSize;
 };
+}

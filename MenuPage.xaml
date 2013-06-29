@@ -1,15 +1,14 @@
 ﻿<common:LayoutAwarePage
     x:Name="pageRoot"
-    x:Class="sfgame.MenuPage"
+    x:Class="sf.MenuPage"
     DataContext="{Binding DefaultViewModel, RelativeSource={RelativeSource Self}}"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:sfgame"
-    xmlns:common="using:sfgame.Common"
+    xmlns:local="using:sf"
+    xmlns:common="using:sf.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    NavigationCacheMode="Enabled"
     >
 
     <Page.Resources>
@@ -17,11 +16,13 @@
         <!-- このページで表示されるアイテムのコレクション -->
         <CollectionViewSource
             x:Name="itemsViewSource"
-            Source="{Binding Items}"/>
+            Source="{Binding Groups}"
+            ItemsPath="Items"
+           IsSourceGrouped="True"
+            />
 
         <!-- TODO: キー AppName が App.xaml で宣言されている場合は、この行を削除します -->
-        <x:String x:Key="AppName">マイ アプリケーション</x:String>
-        <x:String x:Key="AppName1">マイ アプリケーション1</x:String>
+        <x:String x:Key="AppName">S.F. Shooting Game</x:String>
     </Page.Resources>
 
     <!--
@@ -29,7 +30,7 @@
         * 行 0 には [戻る] ボタンおよびページ タイトルが含まれます
         * 行 1 には残りのページ レイアウトが含まれます
     -->
-    <Grid Style="{StaticResource LayoutRootStyle}">
+    <Grid Style="{StaticResource LayoutRootStyle}" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="140"/>
             <RowDefinition Height="*"/>
@@ -42,9 +43,36 @@
             AutomationProperties.Name="Items"
             TabIndex="1"
             Grid.RowSpan="2"
-            Padding="116,136,116,46"
+            Padding="116,137,40,46"
             SelectionMode="None"
-            IsSwipeEnabled="false">
+            IsSwipeEnabled="false"
+            ItemsSource="{Binding Source={StaticResource itemsViewSource}}"
+            ItemTemplate="{StaticResource Standard250x250ItemTemplate}"
+            IsItemClickEnabled="True" FontFamily="Global User Interface"
+            ItemClick="itemGridView_ItemClick"
+            >
+            <GridView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </GridView.ItemsPanel>
+            <GridView.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <VariableSizedWrapGrid
+                                Orientation="Vertical"
+                                Margin="0,0,80,0" />
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Title}" FontSize="30"/>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </GridView.GroupStyle>
+
         </GridView>
 
         <!-- スナップの場合のみ使用される垂直スクロール リスト -->
@@ -68,8 +96,10 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+            <!--
             <Button x:Name="backButton" Click="GoBack" IsEnabled="{Binding Frame.CanGoBack, ElementName=pageRoot}" Style="{StaticResource BackButtonStyle}"/>
-            <TextBlock x:Name="pageTitle" Grid.Column="1" Text="{StaticResource AppName1}" IsHitTestVisible="false" Style="{StaticResource PageHeaderTextStyle}"/>
+            -->
+            <TextBlock x:Name="pageTitle" Grid.Column="1" Text="{StaticResource AppName}" IsHitTestVisible="false" Style="{StaticResource PageHeaderTextStyle}" Margin="86,0,30,40" Height="40"/>
         </Grid>
 
         <VisualStateManager.VisualStateGroups>

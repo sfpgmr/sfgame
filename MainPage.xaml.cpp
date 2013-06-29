@@ -8,9 +8,10 @@
 #include "pch.h"
 #include "App.xaml.h"
 #include "MainPage.xaml.h"
+#include "gamemain.h"
 #include "ProductItem.h"
 
-using namespace sfgame;
+using namespace sf;
 
 using namespace Microsoft::WRL;
 using namespace Platform;
@@ -43,248 +44,116 @@ MainPage::MainPage() :
 
 //----------------------------------------------------------------------
 
-void MainPage::SetApp(App^ app)
+void MainPage::SetApp(GameMain^ app)
 {
-    m_app = app;
+    m_gameMain = app;
 }
 
 //----------------------------------------------------------------------
 
-void MainPage::HideGameInfoOverlay()
-{
-    VisualStateManager::GoToState(this, "NormalState", true);
-
-    StoreFlyout->IsOpen = false;
-    StoreFlyout->Visibility = ::Visibility::Collapsed;
-    GameAppBar->IsOpen = false;
-
-}
+//void MainPage::HideGameInfoOverlay()
+//{
+//    VisualStateManager::GoToState(this, "NormalState", true);
+//
+//    GameAppBar->IsOpen = false;
+//
+//}
 
 //----------------------------------------------------------------------
 
-void MainPage::ShowGameInfoOverlay()
-{
-    VisualStateManager::GoToState(this, "GameInfoOverlayState", true);
-}
+//void MainPage::ShowGameInfoOverlay()
+//{
+//    VisualStateManager::GoToState(this, "GameInfoOverlayState", true);
+//}
 
 //----------------------------------------------------------------------
 
-void MainPage::SetAction(GameInfoOverlayCommand action)
-{
-    // Enable only one of the four possible commands at the bottom of the
-    // Game Info Overlay.
-
-    PlayAgain->Visibility = ::Visibility::Collapsed;
-    PleaseWait->Visibility = ::Visibility::Collapsed;
-    TapToContinue->Visibility = ::Visibility::Collapsed;
-
-    switch (action)
-    {
-    case GameInfoOverlayCommand::PlayAgain:
-        PlayAgain->Visibility = ::Visibility::Visible;
-        break;
-    case GameInfoOverlayCommand::PleaseWait:
-        PleaseWait->Visibility = ::Visibility::Visible;
-        break;
-    case GameInfoOverlayCommand::TapToContinue:
-        TapToContinue->Visibility = ::Visibility::Visible;
-        break;
-    case GameInfoOverlayCommand::None:
-        break;
-    }
-}
+//void MainPage::SetAction(GameInfoOverlayCommand action)
+//{
+//    // Enable only one of the four possible commands at the bottom of the
+//    // Game Info Overlay.
+//}
 
 //----------------------------------------------------------------------
 
-void MainPage::SetGameLoading()
-{
-    GameInfoOverlayTitle->Text = "Loading Resources";
-
-    Loading->Visibility = ::Visibility::Visible;
-    Stats->Visibility = ::Visibility::Collapsed;
-    LevelStart->Visibility = ::Visibility::Collapsed;
-    PauseData->Visibility = ::Visibility::Collapsed;
-    LoadingProgress->IsActive = true;
-}
+//void MainPage::SetGameLoading()
+//{
+//}
 
 //----------------------------------------------------------------------
 
-void MainPage::SetGameStats(
-    int maxLevel,
-    int hitCount,
-    int shotCount
-    )
-{
-    GameInfoOverlayTitle->Text = "Game Statistics";
-    m_possiblePurchaseUpgrade = true;
-    OptionalTrialUpgrade();
-
-    Loading->Visibility = ::Visibility::Collapsed;
-    Stats->Visibility = ::Visibility::Visible;
-    LevelStart->Visibility = ::Visibility::Collapsed;
-    PauseData->Visibility = ::Visibility::Collapsed;
-
-    static const int bufferLength = 20;
-    static char16 wsbuffer[bufferLength];
-
-    int length = swprintf_s(wsbuffer, bufferLength, L"%d", maxLevel);
-    LevelsCompleted->Text = ref new Platform::String(wsbuffer, length);
-
-    length = swprintf_s(wsbuffer, bufferLength, L"%d", hitCount);
-    TotalPoints->Text = ref new Platform::String(wsbuffer, length);
-
-    length = swprintf_s(wsbuffer, bufferLength, L"%d", shotCount);
-    TotalShots->Text = ref new Platform::String(wsbuffer, length);
-
-    // High Score is not used for showing Game Statistics
-    HighScoreTitle->Visibility = ::Visibility::Collapsed;
-    HighScoreData->Visibility  = ::Visibility::Collapsed;
-}
+//void MainPage::SetGameStats(
+//    int maxLevel,
+//    int hitCount,
+//    int shotCount
+//    )
+//{
+//    m_possiblePurchaseUpgrade = true;
+//    OptionalTrialUpgrade();
+//}
 
 //----------------------------------------------------------------------
 
-void MainPage::SetGameOver(
-    bool win,
-    int maxLevel,
-    int hitCount,
-    int shotCount,
-    int highScore
-    )
-{
-    if (win)
-    {
-        GameInfoOverlayTitle->Text = "You Won!";
-        m_possiblePurchaseUpgrade = true;
-        OptionalTrialUpgrade();
-    }
-    else
-    {
-        GameInfoOverlayTitle->Text = "Game Over";
-        m_possiblePurchaseUpgrade = false;
-        PurchaseUpgrade->Visibility = ::Visibility::Collapsed;
-    }
-    Loading->Visibility = ::Visibility::Collapsed;
-    Stats->Visibility = ::Visibility::Visible;
-    LevelStart->Visibility = ::Visibility::Collapsed;
-    PauseData->Visibility = ::Visibility::Collapsed;
-
-    static const int bufferLength = 20;
-    static char16 wsbuffer[bufferLength];
-
-    int length = swprintf_s(wsbuffer, bufferLength, L"%d", maxLevel);
-    LevelsCompleted->Text = ref new Platform::String(wsbuffer, length);
-
-    length = swprintf_s(wsbuffer, bufferLength, L"%d", hitCount);
-    TotalPoints->Text = ref new Platform::String(wsbuffer, length);
-
-    length = swprintf_s(wsbuffer, bufferLength, L"%d", shotCount);
-    TotalShots->Text = ref new Platform::String(wsbuffer, length);
-
-    // Show High Score
-    HighScoreTitle->Visibility = ::Visibility::Visible;
-    HighScoreData->Visibility  = ::Visibility::Visible;
-    length = swprintf_s(wsbuffer, bufferLength, L"%d", highScore);
-    HighScore->Text = ref new Platform::String(wsbuffer, length);
-}
+//void MainPage::SetGameOver(
+//    bool win,
+//    int maxLevel,
+//    int hitCount,
+//    int shotCount,
+//    int highScore
+//    )
+//{
+//}
 
 //----------------------------------------------------------------------
 
-void MainPage::SetLevelStart(
-    int level,
-    Platform::String^ objective,
-    float timeLimit,
-    float bonusTime
-    )
-{
-    static const int bufferLength = 20;
-    static char16 wsbuffer[bufferLength];
-
-    int length = swprintf_s(wsbuffer, bufferLength, L"Level %d", level);
-    GameInfoOverlayTitle->Text = ref new Platform::String(wsbuffer, length);
-
-    Loading->Visibility = ::Visibility::Collapsed;
-    Stats->Visibility = ::Visibility::Collapsed;
-    LevelStart->Visibility = ::Visibility::Visible;
-    PauseData->Visibility = ::Visibility::Collapsed;
-
-    Objective->Text = objective;
-
-    length = swprintf_s(wsbuffer, bufferLength, L"%6.1f sec", timeLimit);
-    TimeLimit->Text = ref new Platform::String(wsbuffer, length);
-
-    if (bonusTime > 0.0)
-    {
-        BonusTimeTitle->Visibility = ::Visibility::Visible;
-        BonusTimeData->Visibility  = ::Visibility::Visible;
-        length = swprintf_s(wsbuffer, bufferLength, L"%6.1f sec", bonusTime);
-        BonusTime->Text = ref new Platform::String(wsbuffer, length);
-    }
-    else
-    {
-        BonusTimeTitle->Visibility = ::Visibility::Collapsed;
-        BonusTimeData->Visibility  = ::Visibility::Collapsed;
-    }
-}
+//void MainPage::SetLevelStart(
+//    int level,
+//    Platform::String^ objective,
+//    float timeLimit,
+//    float bonusTime
+//    )
+//{
+//}
 
 //----------------------------------------------------------------------
 
-void MainPage::SetPause(int level, int hitCount, int shotCount, float timeRemaining)
-{
-    GameInfoOverlayTitle->Text = "Paused";
-    Loading->Visibility = ::Visibility::Collapsed;
-    Stats->Visibility = ::Visibility::Collapsed;
-    LevelStart->Visibility = ::Visibility::Collapsed;
-    PauseData->Visibility = ::Visibility::Visible;
-
-    static const int bufferLength = 20;
-    static char16 wsbuffer[bufferLength];
-
-    int length = swprintf_s(wsbuffer, bufferLength, L"%d", level);
-    PauseLevel->Text = ref new Platform::String(wsbuffer, length);
-
-    length = swprintf_s(wsbuffer, bufferLength, L"%d", hitCount);
-    PauseHits->Text = ref new Platform::String(wsbuffer, length);
-
-    length = swprintf_s(wsbuffer, bufferLength, L"%d", shotCount);
-    PauseShots->Text = ref new Platform::String(wsbuffer, length);
-
-    length = swprintf_s(wsbuffer, bufferLength, L"%6.1f sec", timeRemaining);
-    PauseTimeRemaining->Text = ref new Platform::String(wsbuffer, length);
-}
-
-//----------------------------------------------------------------------
-
-void MainPage::SetSnapped()
-{
-    VisualStateManager::GoToState(this, "SnappedState", true);
-}
-
-//----------------------------------------------------------------------
-
-void MainPage::HideSnapped()
-{
-    VisualStateManager::GoToState(this, "UnsnappedState", true);
-}
+//void MainPage::SetPause(int level, int hitCount, int shotCount, float timeRemaining)
+//{
+//}
+//
+////----------------------------------------------------------------------
+//
+//void MainPage::SetSnapped()
+//{
+//    //VisualStateManager::GoToState(this, "SnappedState", true);
+//}
+//
+////----------------------------------------------------------------------
+//
+//void MainPage::HideSnapped()
+//{
+//    //VisualStateManager::GoToState(this, "UnsnappedState", true);
+//}
 
 //----------------------------------------------------------------------
 
 void MainPage::OnGameInfoOverlayTapped(Object^ /* sender */, TappedRoutedEventArgs^ /* args */)
 {
-    m_app->PressComplete();
+    //m_gameMain->PressComplete();
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::OnPlayButtonClicked(Object^ /* sender */, RoutedEventArgs^ /* args */)
 {
-    m_app->PressComplete();
+    //m_gameMain->PressComplete();
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::OnResetButtonClicked(Object^ /* sender */, RoutedEventArgs^ /* args */)
 {
-    m_app->ResetGame();
+    //m_gameMain->ResetGame();
     GameAppBar->IsOpen = false;
 }
 
@@ -300,6 +169,7 @@ void MainPage::LicenseChanged(
 
     // This function may be called from a different thread.
     // All XAML updates need to occur on the UI thread so dispatch to ensure this is true.
+ /*
     Dispatcher->RunAsync(
         CoreDispatcherPriority::Normal,
         ref new DispatchedHandler([this]()
@@ -308,7 +178,7 @@ void MainPage::LicenseChanged(
             {
                 if (!m_licenseInformation->IsTrial)
                 {
-                    PurchaseUpgrade->Visibility = ::Visibility::Collapsed;
+//                    PurchaseUpgrade->Visibility = ::Visibility::Collapsed;
                 }
             }
             else
@@ -320,17 +190,17 @@ void MainPage::LicenseChanged(
             {
                 if (m_listingInformation != nullptr)
                 {
-                    PurchaseMessage->Text =
-                        "You are running a trial version. Purchase the full version for: " + m_listingInformation->FormattedPrice;
+  //                  PurchaseMessage->Text =
+  //                      "You are running a trial version. Purchase the full version for: " + m_listingInformation->FormattedPrice;
                 }
                 else
                 {
-                    PurchaseMessage->Text =
-                        "You are running a trial version. Purchase the full version.";
+  //                  PurchaseMessage->Text =
+  //                      "You are running a trial version. Purchase the full version.";
                 }
                 if (m_possiblePurchaseUpgrade)
                 {
-                    PurchaseUpgrade->Visibility = ::Visibility::Visible;
+ //                   PurchaseUpgrade->Visibility = ::Visibility::Visible;
                 }
             }
 
@@ -352,6 +222,7 @@ void MainPage::LicenseChanged(
             }
         })
         );
+        */
 }
 
 //----------------------------------------------------------------------
@@ -367,8 +238,8 @@ void MainPage::OnBuyAppButtonTapped(Object^ sender, TappedRoutedEventArgs^ args)
 void MainPage::OnBuySelectorClicked(Object^ sender, RoutedEventArgs^ /* args */)
 {
     Platform::String^ tag = dynamic_cast<Platform::String^>(dynamic_cast<Button^>(sender)->CommandParameter);
-    StoreUnavailable->Visibility = ::Visibility::Collapsed;
-
+    //StoreUnavailable->Visibility = ::Visibility::Collapsed;
+    /*
     if (tag == "MainApp")
     {
         if ((m_licenseInformation != nullptr) && m_licenseInformation->IsActive)
@@ -420,49 +291,51 @@ void MainPage::OnBuySelectorClicked(Object^ sender, RoutedEventArgs^ /* args */)
                     {
                         if (exception->HResult == E_FAIL)
                         {
-                            StoreUnavailable->Visibility = ::Visibility::Visible;
+//                            StoreUnavailable->Visibility = ::Visibility::Visible;
                         }
                     }
                 });
             }
         }
     }
+    */
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::OnChangeBackgroundButtonClicked(Object^ /* sender */, RoutedEventArgs^ /* args */)
 {
-    if ((m_licenseInformation != nullptr) && m_licenseInformation->IsActive)
-    {
-        if (m_licenseInformation->IsTrial ||
-            (!m_licenseInformation->ProductLicenses->Lookup("NightBackground")->IsActive  &&
-            !m_licenseInformation->ProductLicenses->Lookup("DayBackground")->IsActive))
-        {
-            ShowStoreFlyout();
-        }
-        else
-        {
-            m_app->CycleBackground();
-        }
-    }
+    //if ((m_licenseInformation != nullptr) && m_licenseInformation->IsActive)
+    //{
+    //    if (m_licenseInformation->IsTrial ||
+    //        (!m_licenseInformation->ProductLicenses->Lookup("NightBackground")->IsActive  &&
+    //        !m_licenseInformation->ProductLicenses->Lookup("DayBackground")->IsActive))
+    //    {
+    //        ShowStoreFlyout();
+    //    }
+    //    else
+    //    {
+    //        m_gameMain->CycleBackground();
+    //    }
+    //}
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::OnResetLicenseButtonClicked(Object^ /* sender */, RoutedEventArgs^ /* args */)
 {
-#ifdef USE_STORE_SIMULATOR
-    m_app->ResetLicense();
-#endif
-    m_app->SetBackground(0);
+//#ifdef USE_STORE_SIMULATOR
+//    m_gameMain->ResetLicense();
+//#endif
+//    m_gameMain->SetBackground(0);
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::OptionalTrialUpgrade()
 {
-    PurchaseUpgrade->Visibility = ::Visibility::Collapsed;
+  /*
+  PurchaseUpgrade->Visibility = ::Visibility::Collapsed;
 
     if (m_licenseInformation != nullptr)
     {
@@ -481,22 +354,23 @@ void MainPage::OptionalTrialUpgrade()
             PurchaseUpgrade->Visibility = ::Visibility::Visible;
         }
     }
+    */
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::OnStoreReturnClicked(Object^ /* sender */, RoutedEventArgs^ /* args */)
 {
-    StoreFlyout->IsOpen = false;
-    StoreFlyout->Visibility = ::Visibility::Collapsed;
+//    StoreFlyout->IsOpen = false;
+//    StoreFlyout->Visibility = ::Visibility::Collapsed;
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::OnLoadStoreClicked(Object^ /* sender */, RoutedEventArgs^ /* args */)
 {
-    m_app->PauseRequested();
-    ShowStoreFlyout();
+//    m_gameMain->PauseRequested();
+//    ShowStoreFlyout();
 }
 
 //----------------------------------------------------------------------
@@ -511,35 +385,65 @@ void MainPage::SetProductItems(
     items->Append(ref new ProductItem(listing, license, "AutoFire", false));
     items->Append(ref new ProductItem(listing, license, "NightBackground", false));
     items->Append(ref new ProductItem(listing, license, "DayBackground", false));
-    ProductListView->ItemsSource = items;
-    StoreUnavailable->Visibility = ::Visibility::Collapsed;
+//    ProductListView->ItemsSource = items;
+//    StoreUnavailable->Visibility = ::Visibility::Collapsed;
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::OnWindowSizeChanged()
 {
-    StoreGrid->Height = Window::Current->Bounds.Height;
-    StoreFlyout->HorizontalOffset = Window::Current->Bounds.Width - StoreGrid->Width;
+///    StoreGrid->Height = Window::Current->Bounds.Height;
+//    StoreFlyout->HorizontalOffset = Window::Current->Bounds.Width - StoreGrid->Width;
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::OnAppBarOpened(Object^ /* sender */, Object^ /* args */)
 {
-    m_app->PauseRequested();
+      m_gameMain->GetStateMachine().process_event(stm::ev::ShowAppMenu(m_gameMain));
+      //m_gameMain->PauseRequested();
 }
 
 //----------------------------------------------------------------------
 
 void MainPage::ShowStoreFlyout()
 {
-    StoreGrid->Height = Window::Current->Bounds.Height;
+ /*
+  StoreGrid->Height = Window::Current->Bounds.Height;
     StoreUnavailable->Visibility = ::Visibility::Collapsed;
     StoreFlyout->HorizontalOffset = Window::Current->Bounds.Width - StoreGrid->Width;
     StoreFlyout->IsOpen = true;
-    StoreFlyout->Visibility = ::Visibility::Visible;
+    StoreFlyout->Visibility = ::Visibility::Visible;*/
     GameAppBar->IsOpen = false;
 }
 
 //----------------------------------------------------------------------
+
+
+void sf::MainPage::GameAppBar_Closed(Platform::Object^ sender, Platform::Object^ e)
+{
+
+  m_gameMain->GetStateMachine().process_event(stm::ev::HideAppMenu(m_gameMain));
+}
+
+
+void sf::MainPage::KillPlayer_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+
+  m_gameMain->GetStateMachine().process_event(stm::ev::PlayerIsGone(m_gameMain));
+}
+
+
+void sf::MainPage::ReturnMenu_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+  m_gameMain->GetStateMachine().process_event(stm::ev::ReturnMenu(m_gameMain));
+}
+
+
+void sf::MainPage::m_PlayerKill_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+
+  m_gameMain->GetStateMachine().process_event(stm::ev::PlayerIsGone(m_gameMain));
+
+}

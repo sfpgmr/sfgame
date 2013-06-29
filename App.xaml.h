@@ -49,44 +49,42 @@
 
 #define USE_STORE_SIMULATOR 1
 
-#include "MainPage.xaml.h"
-#include "MenuPage.xaml.h"
 #include "gamemain.h"
 #ifdef USE_STORE_SIMULATOR
 #include "PersistentState.h"
 #endif
 #include "App.g.h"
 
-namespace sfgame
+namespace sf
 {
-    private enum class UpdateEngineState
-    {
-        WaitingForResources,
-        ResourcesLoaded,
-        WaitingForPress,
-        Dynamics,
-        Snapped,
-        Suspended,
-        Deactivated,
-    };
+    //private enum class UpdateEngineState
+    //{
+    //    WaitingForResources,
+    //    ResourcesLoaded,
+    //    WaitingForPress,
+    //    Dynamics,
+    //    Snapped,
+    //    Suspended,
+    //    Deactivated,
+    //};
 
-    private enum class PressResultState
-    {
-        LoadGame,
-        PlayLevel,
-        ContinueLevel,
-    };
+    //private enum class PressResultState
+    //{
+    //    LoadGame,
+    //    PlayLevel,
+    //    ContinueLevel,
+    //};
 
-    private enum class GameInfoOverlayState
-    {
-        Loading,
-        GameStats,
-        GameOverExpired,
-        GameOverCompleted,
-        LevelStart,
-        Pause,
-        Snapped,
-    };
+    //private enum class GameInfoOverlayState
+    //{
+    //    Loading,
+    //    GameStats,
+    //    GameOverExpired,
+    //    GameOverCompleted,
+    //    LevelStart,
+    //    Pause,
+    //    Snapped,
+    //};
 
     [Windows::Foundation::Metadata::WebHostHidden]
     public ref class App sealed
@@ -98,96 +96,27 @@ namespace sfgame
             _In_ Windows::ApplicationModel::Activation::LaunchActivatedEventArgs^ args
             ) override;
 
-        void PauseRequested() { if (m_updateState == UpdateEngineState::Dynamics) m_pauseRequested = true; };
-        void PressComplete()  { if (m_updateState == UpdateEngineState::WaitingForPress) m_pressComplete = true; };
-        void ResetGame();
-        void SetBackground(unsigned int background);
-        void CycleBackground();
+        //void PauseRequested() { if (m_updateState == UpdateEngineState::Dynamics) m_pauseRequested = true; };
+        //void PressComplete()  { if (m_updateState == UpdateEngineState::WaitingForPress) m_pressComplete = true; };
+        //void ResetGame();
+        //void SetBackground(unsigned int background);
+        //void CycleBackground();
 
-#ifdef USE_STORE_SIMULATOR
-        void ResetLicense();
-#endif
+ //       void SetGameInfoOverlay(GameInfoOverlayState state);
+//        void SetAction (GameInfoOverlayCommand command);
+        //void //ShowGameInfoOverlay();
+        //void HideGameInfoOverlay();
+        //void SetSnapped();
+        //void HideSnapped();
+
+        //UpdateEngineState                                   m_updateState;
+        //UpdateEngineState                                   m_updateStateNext;
+        //PressResultState                                    m_pressResult;
+        //GameInfoOverlayState                                m_gameInfoOverlayState;
 
     private:
-        ~App();
+      GameMain^ m_gameMain;
 
-        void OnSuspending(
-            _In_ Platform::Object^ sender,
-            _In_ Windows::ApplicationModel::SuspendingEventArgs^ args
-            );
-
-        void OnResuming(
-            _In_ Platform::Object^ sender,
-            _In_ Platform::Object^ args
-            );
-
-        void UpdateViewState();
-
-        void OnWindowActivationChanged(
-            _In_ Platform::Object^ sender,
-            _In_ Windows::UI::Core::WindowActivatedEventArgs^ args
-            );
-
-        void OnWindowSizeChanged(
-            _In_ Windows::UI::Core::CoreWindow^ sender,
-            _In_ Windows::UI::Core::WindowSizeChangedEventArgs^ args
-            );
-
-        void OnLogicalDpiChanged(
-            _In_ Platform::Object^ sender
-            );
-
-        void OnDisplayContentsInvalidated(
-            _In_ Platform::Object^ sender
-            );
-
-        void OnVisibilityChanged(
-            _In_ Windows::UI::Core::CoreWindow^ sender,
-            _In_ Windows::UI::Core::VisibilityChangedEventArgs^ args
-            );
-
-        void OnRendering(
-            _In_ Object^ sender,
-            _In_ Object^ args
-            );
-
-        void OnLicenseChanged();
-        void InitializeLicense();
-        void InitializeLicenseCore();
-
-        void InitializeGameState();
-        void OnDeviceLost();
-        void OnDeviceReset();
-        void Update();
-        void SetGameInfoOverlay(GameInfoOverlayState state);
-        void SetAction (GameInfoOverlayCommand command);
-        void ShowGameInfoOverlay();
-        void HideGameInfoOverlay();
-        void SetSnapped();
-        void HideSnapped();
-
-        Windows::Foundation::EventRegistrationToken         m_onRenderingEventToken;
-        bool                                                m_pauseRequested;
-        bool                                                m_pressComplete;
-        bool                                                m_renderNeeded;
-        bool                                                m_haveFocus;
-        bool                                                m_visible;
-
-        MainPage^                                           m_mainPage;
-        MoveLookController^                                 m_controller;
-        GameRenderer^                                       m_renderer;
-        GameMain^                                           m_game;
-
-        UpdateEngineState                                   m_updateState;
-        UpdateEngineState                                   m_updateStateNext;
-        PressResultState                                    m_pressResult;
-        GameInfoOverlayState                                m_gameInfoOverlayState;
-        Windows::ApplicationModel::Store::LicenseInformation^ m_licenseInformation;
-        Windows::ApplicationModel::Store::ListingInformation^ m_listingInformation;
-#ifdef USE_STORE_SIMULATOR
-        PersistentState^                                    m_licenseState;
-        bool                                                m_isTrial;
-#endif
     };
 }
 

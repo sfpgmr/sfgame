@@ -7,7 +7,7 @@
 
 #include <ppltasks.h>
 
-namespace sfgame
+namespace sf
 {
 	namespace Common
 	{

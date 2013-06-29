@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace sfgame
+namespace sf
 {
 	namespace Common
 	{

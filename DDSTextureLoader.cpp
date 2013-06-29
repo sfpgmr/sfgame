@@ -1075,7 +1075,7 @@ static void CreateTextureFromDDS(
         hr = CreateD3DResources(d3dDevice, resDim, twidth, theight, tdepth, mipCount - skipMip, arraySize, format, isCubeMap, initData.get(), texture, textureView);
     }
 
-    DX::ThrowIfFailed(hr);
+    ThrowIfFailed(hr);
 }
 
 //--------------------------------------------------------------------------------------

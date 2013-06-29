@@ -8,7 +8,7 @@
 #pragma once
 
 #include <Windows.h>
-#include <windowsx.h>
+//#include <windowsx.h>
 #include <wrl.h>
 #include <d3d11_1.h>
 #include <d2d1_1.h>
@@ -26,15 +26,15 @@
 #include <mmreg.h>
 #include <mfapi.h>
 #include <mfidl.h>
-#include <evr.h>
+//#include <evr.h>
 #include <Mfreadwrite.h>
 #include <mferror.h>
-#include <Mfsharingengine.h>
-#include <Wmcodecdsp.h>
+//#include <Mfsharingengine.h>
+//#include <Wmcodecdsp.h>
 #include <Mfmediacapture.h>
-#include <Wmcontainer.h>
-#include <Mfcaptureengine.h>
-#include <Mfmp2dlna.h>
+//#include <Wmcontainer.h>
+//#include <Mfcaptureengine.h>
+//#include <Mfmp2dlna.h>
 
 //#include <dcomp.h>
 
@@ -47,12 +47,19 @@
 #include <memory>
 #include <array>
 #include <boost\format.hpp>
+#include <boost/format.hpp>
+#include <boost/msm/back/state_machine.hpp>
+#include <boost/msm/front/functor_row.hpp>
+#include <boost/msm/front/states.hpp>
+#include <boost/msm/front/state_machine_def.hpp>
 
 #include <ppltasks.h>
 #include <agile.h>
 #include <Box2D.h>
+#include "sf_memory.h"
 #include "sfhelper.h"
 
 #include "Common\LayoutAwarePage.h"
 #include "Common\RichTextColumns.h"
+#include "debugout.h"
 

@@ -1,12 +1,13 @@
 #pragma once
 
 namespace sf {
-  class game_obj_base;
+  struct game_obj_base;
   typedef std::array<std::unique_ptr<game_obj_base>,100> game_objs_t;
 
   struct game_base {
     game_base(){};
     virtual ~game_base(){};
+    virtual void init() = 0;
     virtual b2World& world() = 0;
     virtual float32 scroll_offset() = 0;
     virtual void step(float32 delta_time) = 0;

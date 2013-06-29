@@ -8,14 +8,11 @@
 #pragma once
 
 // This header defines helper utilities to make DirectX APIs work with exceptions.
-namespace DX
-{
-    inline void ThrowIfFailed(HRESULT hr)
-    {
-        if (FAILED(hr))
-        {
-            // Set a breakpoint on this line to catch DX API errors.
-            throw Platform::Exception::CreateException(hr);
-        }
+    #define ThrowIfFailed(hr) \
+    {\
+        if (FAILED(hr))\
+        {\
+            DOUT(hr);\
+            throw Platform::Exception::CreateException(hr);\
+        }\
     }
-}

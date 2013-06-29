@@ -2,7 +2,7 @@
 
 #include <collection.h>
 
-namespace sfgame
+namespace sf
 {
 	namespace Common
 	{

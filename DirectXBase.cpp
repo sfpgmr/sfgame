@@ -37,8 +37,10 @@ void DirectXBase::Initialize(
     CreateDeviceResources();
     SetDpi(dpi);
 
-    DisplayProperties::StereoEnabledChanged +=
-        ref new DisplayPropertiesEventHandler(this, &DirectXBase::OnStereoEnabledChanged);
+    //if(m_stereoEnabled){
+    //  DisplayProperties::StereoEnabledChanged +=
+    //      ref new DisplayPropertiesEventHandler(this, &DirectXBase::OnStereoEnabledChanged);
+    //}
 }
 
 // Recreate all device resources and set them back to the current state.
@@ -79,7 +81,7 @@ void DirectXBase::CreateDeviceIndependentResources()
     options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
 #endif
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         D2D1CreateFactory(
             D2D1_FACTORY_TYPE_SINGLE_THREADED,
             __uuidof(ID2D1Factory1),
@@ -88,7 +90,7 @@ void DirectXBase::CreateDeviceIndependentResources()
             )
         );
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_SHARED,
             __uuidof(IDWriteFactory),
@@ -96,7 +98,7 @@ void DirectXBase::CreateDeviceIndependentResources()
             )
         );
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         CoCreateInstance(
             CLSID_WICImagingFactory,
             nullptr,
@@ -137,7 +139,7 @@ void DirectXBase::CreateDeviceResources()
     // Create the Direct3D 11 API device object and a corresponding context.
     ComPtr<ID3D11Device> device;
     ComPtr<ID3D11DeviceContext> context;
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         D3D11CreateDevice(
             nullptr,                    // Specify nullptr to use the default adapter.
             D3D_DRIVER_TYPE_HARDWARE,
@@ -153,25 +155,25 @@ void DirectXBase::CreateDeviceResources()
         );
 
     // Get the Direct3D 11.1 API device and context interfaces.
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         device.As(&m_d3dDevice)
         );
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         context.As(&m_d3dContext)
         );
 
     // Get the underlying DXGI device of the Direct3D device.
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice.As(&dxgiDevice)
         );
 
     // Create the Direct2D device object and a corresponding context.
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d2dFactory->CreateDevice(dxgiDevice.Get(), &m_d2dDevice)
         );
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d2dDevice->CreateDeviceContext(
             D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
             &m_d2dContext
@@ -211,20 +213,20 @@ void DirectXBase::CheckStereoEnabledStatus()
 {
     // first, retrieve the underlying DXGI Device from the D3D Device
     ComPtr<IDXGIDevice1> dxgiDevice;
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice.As(&dxgiDevice)
         );
 
     // next, get the associated adapter from the DXGI Device
     ComPtr<IDXGIAdapter> dxgiAdapter;
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         dxgiDevice->GetAdapter(&dxgiAdapter)
         );
 
 
     // next, get the parent factory from the DXGI adapter
     ComPtr<IDXGIFactory2> dxgiFactory;
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         dxgiAdapter->GetParent(IID_PPV_ARGS(&dxgiFactory))
         );
     
@@ -308,7 +310,7 @@ void DirectXBase::CreateWindowSizeDependentResources()
         }
         else
         {
-            DX::ThrowIfFailed(hr);
+            ThrowIfFailed(hr);
         }
     }
     else    // Otherwise, create a new one.
@@ -344,24 +346,24 @@ void DirectXBase::CreateWindowSizeDependentResources()
 
         // First, retrieve the underlying DXGI Device from the D3D Device.
         ComPtr<IDXGIDevice1> dxgiDevice;
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice.As(&dxgiDevice)
             );
 
         // Identify the physical adapter (GPU or card) this device is running on.
         ComPtr<IDXGIAdapter> dxgiAdapter;
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             dxgiDevice->GetAdapter(&dxgiAdapter)
             );
 
         // And obtain the factory object that created it.
         ComPtr<IDXGIFactory2> dxgiFactory;
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             dxgiAdapter->GetParent(IID_PPV_ARGS(&dxgiFactory))
             );
 
         // Create the swap chain and then associate it with the SwapChainBackgroundPanel.
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             dxgiFactory->CreateSwapChainForComposition(
                 m_d3dDevice.Get(),
                 &swapChainDesc,
@@ -375,14 +377,14 @@ void DirectXBase::CreateWindowSizeDependentResources()
         // set the swap chain on the SwapChainBackgroundPanel
         reinterpret_cast<IUnknown*>(m_swapChainPanel)->QueryInterface(__uuidof(ISwapChainBackgroundPanelNative), (void**)&dxRootPanelAsNative);
 
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             dxRootPanelAsNative->SetSwapChain(m_swapChain.Get())
             );
 
         // Ensure that DXGI does not queue more than one frame at a time. This both reduces
         // latency and ensures that the application will only render after each VSync, minimizing
         // power consumption.
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             dxgiDevice->SetMaximumFrameLatency(1)
             );
     }
@@ -454,13 +456,13 @@ void DirectXBase::CreateWindowSizeDependentResources()
             break;
     }
 
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_swapChain->SetRotation(rotation)
         );
 
     // Obtain the backbuffer for this window which will be the final 3D rendertarget.
     ComPtr<ID3D11Texture2D> backBuffer;
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer))
         );
 
@@ -474,7 +476,7 @@ void DirectXBase::CreateWindowSizeDependentResources()
         );
 
     // Create a view interface on the rendertarget to use on bind for mono or left eye view.
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateRenderTargetView(
             backBuffer.Get(),
             &renderTargetViewDesc,
@@ -494,7 +496,7 @@ void DirectXBase::CreateWindowSizeDependentResources()
             1
             );
 
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d3dDevice->CreateRenderTargetView(
                 backBuffer.Get(),
                 &renderTargetViewRightDesc,
@@ -515,7 +517,7 @@ void DirectXBase::CreateWindowSizeDependentResources()
 
     // Allocate a 2-D surface as the depth/stencil buffer.
     ComPtr<ID3D11Texture2D> depthStencil;
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateTexture2D(
             &depthStencilDesc,
             nullptr,
@@ -525,7 +527,7 @@ void DirectXBase::CreateWindowSizeDependentResources()
 
     // Create a DepthStencil view on this surface to use on bind.
     auto viewDesc = CD3D11_DEPTH_STENCIL_VIEW_DESC(D3D11_DSV_DIMENSION_TEXTURE2D);
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d3dDevice->CreateDepthStencilView(
             depthStencil.Get(),
             &viewDesc,
@@ -557,17 +559,17 @@ void DirectXBase::CreateWindowSizeDependentResources()
 
     // Direct2D needs the dxgi version of the backbuffer surface pointer.
     ComPtr<IDXGIResource1> dxgiBackBuffer;
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_swapChain->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer))
         );
 
     ComPtr<IDXGISurface2> dxgiSurface;
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         dxgiBackBuffer->CreateSubresourceSurface(0, &dxgiSurface)
         );
 
     // Get a D2D surface from the DXGI back buffer to use as the D2D render target.
-    DX::ThrowIfFailed(
+    ThrowIfFailed(
         m_d2dContext->CreateBitmapFromDxgiSurface(
             dxgiSurface.Get(),
             &bitmapProperties,
@@ -579,10 +581,10 @@ void DirectXBase::CreateWindowSizeDependentResources()
     // for the right eye buffer.
     if (m_stereoEnabled)
     {
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             dxgiBackBuffer->CreateSubresourceSurface(1, &dxgiSurface)
             );
-        DX::ThrowIfFailed(
+        ThrowIfFailed(
             m_d2dContext->CreateBitmapFromDxgiSurface(
                 dxgiSurface.Get(),
                 &bitmapProperties,
@@ -627,7 +629,7 @@ void DirectXBase::Present()
     }
     else
     {
-        DX::ThrowIfFailed(hr);
+        ThrowIfFailed(hr);
     }
 }
 
